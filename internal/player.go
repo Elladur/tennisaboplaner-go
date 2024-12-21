@@ -1,19 +1,18 @@
-package player
+package internal
 
 import "time"
 
-type Player struct{
-	Name string
+type Player struct {
+	Name       string
 	CannotPlay []time.Time
-	Weight float64
+	Weight     float64
 }
 
-
-func (p *Player) toDict() map[string]interface{} {
+func (p Player) toDict() map[string]interface{} {
 	return map[string]interface{}{
-		"name": p.Name,
+		"name":        p.Name,
 		"cannot_play": p.CannotPlay,
-		"weight": p.Weight,
+		"weight":      p.Weight,
 	}
 }
 
@@ -23,6 +22,6 @@ func (p *Player) fromDict(d map[string]interface{}) {
 	p.Weight = d["weight"].(float64)
 }
 
-func (p *Player) String() string {
-	return (p.Name)
+func (p Player) String() string {
+	return p.Name
 }
