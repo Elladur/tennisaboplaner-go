@@ -44,7 +44,7 @@ func TestGetPlayersOfRound(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := GetPlayersOfRound(tt.round)
+			result := getPlayersOfRound(tt.round)
 			assert.Equal(t, tt.expected, result)
 		})
 	}

@@ -19,7 +19,7 @@ func TestCreateMatch(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		m, err := CreateMatch(tt.player1, tt.player2)
+		m, err := createMatch(tt.player1, tt.player2)
 		if tt.expectErr {
 			assert.Error(t, err, "expected an error but got none")
 		} else {
@@ -31,59 +31,59 @@ func TestCreateMatch(t *testing.T) {
 
 func TestCreatePartialMatch(t *testing.T) {
 	player1 := uint8(1)
-	match := CreatePartialMatch(player1)
-	assert.Equal(t, player1, match.Player1, "Player1 should be set correctly")
-	assert.False(t, match.IsPlayer2Set, "IsPlayer2Set should be false")
+	match := createPartialMatch(player1)
+	assert.Equal(t, player1, match.player1, "Player1 should be set correctly")
+	assert.False(t, match.isPlayer2Set, "IsPlayer2Set should be false")
 }
 
 func TestGetPlayers(t *testing.T) {
-	match := Match{Player1: 1, Player2: 2, IsPlayer2Set: true}
+	match := Match{player1: 1, player2: 2, isPlayer2Set: true}
 	players := match.GetPlayers()
 	assert.Equal(t, []uint8{1, 2}, players, "Players should be [1, 2]")
 
-	partialMatch := Match{Player1: 1, IsPlayer2Set: false}
+	partialMatch := Match{player1: 1, isPlayer2Set: false}
 	players = partialMatch.GetPlayers()
 	assert.Equal(t, []uint8{1}, players, "Players should be [1]")
 }
 
 func TestCanMatchBeAdded(t *testing.T) {
 	matches := []Match{
-		{Player1: 1, Player2: 2, IsPlayer2Set: true},
-		{Player1: 3, Player2: 4, IsPlayer2Set: true},
-		{Player1: 7, IsPlayer2Set: false},
+		{player1: 1, player2: 2, isPlayer2Set: true},
+		{player1: 3, player2: 4, isPlayer2Set: true},
+		{player1: 7, isPlayer2Set: false},
 	}
 
 	tests := []struct {
 		match      Match
 		canBeAdded bool
 	}{
-		{Match{Player1: 5, Player2: 6, IsPlayer2Set: true}, true},
-		{Match{Player1: 1, Player2: 3, IsPlayer2Set: true}, false},
-		{Match{Player1: 2, Player2: 4, IsPlayer2Set: true}, false},
-		{Match{Player1: 5, IsPlayer2Set: false}, true},
+		{Match{player1: 5, player2: 6, isPlayer2Set: true}, true},
+		{Match{player1: 1, player2: 3, isPlayer2Set: true}, false},
+		{Match{player1: 2, player2: 4, isPlayer2Set: true}, false},
+		{Match{player1: 5, isPlayer2Set: false}, true},
 	}
 
 	for _, tt := range tests {
-		assert.Equal(t, tt.canBeAdded, CanMatchBeAdded(matches, tt.match), "CanMatchBeAdded(%v) should be %v", tt.match, tt.canBeAdded)
+		assert.Equal(t, tt.canBeAdded, canMatchBeAdded(matches, tt.match), "CanMatchBeAdded(%v) should be %v", tt.match, tt.canBeAdded)
 	}
 }
 
 func TestReplacePlayer(t *testing.T) {
-	match := Match{Player1: 1, Player2: 2, IsPlayer2Set: true}
+	match := Match{player1: 1, player2: 2, isPlayer2Set: true}
 
-	err := match.ReplacePlayer(1, 3)
+	err := match.replacePlayer(1, 3)
 	assert.NoError(t, err, "expected no error")
-	assert.Equal(t, uint8(3), match.Player1, "Player1 should be 3")
+	assert.Equal(t, uint8(3), match.player1, "Player1 should be 3")
 
-	err = match.ReplacePlayer(2, 4)
+	err = match.replacePlayer(2, 4)
 	assert.NoError(t, err, "expected no error")
-	assert.Equal(t, uint8(4), match.Player2, "Player2 should be 4")
+	assert.Equal(t, uint8(4), match.player2, "Player2 should be 4")
 
-	err = match.ReplacePlayer(1, 4)
+	err = match.replacePlayer(1, 4)
 	assert.Equal(t, Match{3, 4, true}, match, "expected match to be {3, 4, true}")
 	assert.Error(t, err, "expected an error")
 
-	err = match.ReplacePlayer(5, 6)
+	err = match.replacePlayer(5, 6)
 	assert.Equal(t, Match{3, 4, true}, match, "expected match to be {3, 4, true}")
 	assert.Error(t, err, "expected an error")
 }

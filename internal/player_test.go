@@ -14,7 +14,7 @@ func TestPlayerToDict(t *testing.T) {
 		Weight:     1,
 	}
 
-	dict := player.toDict()
+	dict := player.ToDict()
 
 	assert.Equal(t, player.Name, dict["name"])
 	assert.Equal(t, player.CannotPlay, dict["cannot_play"])
@@ -30,7 +30,7 @@ func TestPlayerFromDict(t *testing.T) {
 	}
 
 	player := Player{}
-	player.fromDict(dict)
+	player.FromDict(dict)
 
 	assert.Equal(t, dict["name"], player.Name)
 	assert.Equal(t, dict["cannot_play"], player.CannotPlay)

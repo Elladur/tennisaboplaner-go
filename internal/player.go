@@ -8,7 +8,7 @@ type Player struct {
 	Weight     float64
 }
 
-func (p Player) toDict() map[string]interface{} {
+func (p Player) ToDict() map[string]interface{} {
 	return map[string]interface{}{
 		"name":        p.Name,
 		"cannot_play": p.CannotPlay,
@@ -16,7 +16,7 @@ func (p Player) toDict() map[string]interface{} {
 	}
 }
 
-func (p *Player) fromDict(d map[string]interface{}) {
+func (p *Player) FromDict(d map[string]interface{}) {
 	p.Name = d["name"].(string)
 	p.CannotPlay = d["cannot_play"].([]time.Time)
 	p.Weight = d["weight"].(float64)
