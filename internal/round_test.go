@@ -38,7 +38,7 @@ func TestGetPlayersOfRound(t *testing.T) {
 				{1, 2, true},
 				{2, 3, true},
 			},
-			expected: []uint8{1, 2, 2, 3},
+			expected: []uint8{1, 2, 3},
 		},
 	}
 

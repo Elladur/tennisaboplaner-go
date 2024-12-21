@@ -3,7 +3,11 @@ package internal
 func getPlayersOfRound(round []Match) []uint8 {
 	var players []uint8
 	for _, match := range round {
-		players = append(players, match.GetPlayers()...)
+		for _, p := range match.GetPlayers() {
+			if !isInSlice(p, players) {
+				players = append(players, p)
+			}
+		}
 	}
 	return players
 }
