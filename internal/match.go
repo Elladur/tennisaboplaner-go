@@ -55,10 +55,8 @@ func canMatchBeAdded(matches []Match, match Match) bool {
 }
 
 func (m *Match) replacePlayer(oldPlayer uint8, newPlayer uint8) error {
-	for _, player := range m.GetPlayers() {
-		if player == newPlayer {
-			return errors.New("new player is already in the match")
-		}
+	if isInSlice(newPlayer, m.GetPlayers()) {
+		return errors.New("new player is already in the match")
 	}
 	if m.player1 == oldPlayer {
 		m.player1 = newPlayer
