@@ -68,7 +68,7 @@ func TestCreateSeason(t *testing.T) {
 
 func TestCreateSchedule(t *testing.T) {
 	season := setupTestSeason()
-	season.createSchedule()
+	season.CreateSchedule()
 	assert.NotEmpty(t, season.Schedule)
 	assert.Equal(t, len(season.dates), len(season.Schedule))
 }

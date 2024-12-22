@@ -76,7 +76,7 @@ func createSeason(players []Player, start time.Time, end time.Time, numberOfCour
 		ExcludedDates:  excludedDates,
 		dates:          dates,
 	}
-	season.createSchedule()
+	season.CreateSchedule()
 	return season
 }
 
@@ -90,7 +90,9 @@ func generateDates(start time.Time, end time.Time, excludedDates []time.Time) []
 	return dates
 }
 
-func (s *Season) createSchedule() {
+// CreateSchedule createas new schedule for this season.
+// This is done with some randomness, such that optimization has a different starting point.
+func (s *Season) CreateSchedule() {
 	s.Schedule = [][]Match{}
 	for i, d := range s.dates {
 		r, partial := s.createRound(d)

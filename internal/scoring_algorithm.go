@@ -6,7 +6,8 @@ import (
 	"github.com/montanaflynn/stats"
 )
 
-func getScore(schedule [][]Match, players []Player) float64 {
+// GetScore gives the value which was used to optimize the schedule
+func GetScore(schedule [][]Match, players []Player) float64 {
 	numberRounds := float64(len(schedule))
 	var score float64
 
@@ -55,7 +56,7 @@ func getStdOfPossibleMatches(schedule [][]Match, players []Player) (float64, err
 			if err != nil {
 				continue
 			}
-			val := float64(len(getMatchIndizesOfMatch(schedule, match))) / combinedWeight
+			val := float64(getCountOfMatchInSchedule(schedule, match)) / combinedWeight
 			weightedPossibleMatches = append(weightedPossibleMatches, val)
 		}
 	}
@@ -80,7 +81,7 @@ func getStdOfPauseBetweenMatches(schedule [][]Match, players []Player) (float64,
 			if err != nil {
 				continue
 			}
-			roundsPlaying := convertMatchIndizesToRoundIndizes(getMatchIndizesOfMatch(schedule, match))
+			roundsPlaying := getRoundIndizesOfMatch(schedule, match)
 			val := calcStdOfPauses(schedule, roundsPlaying)
 			pausesBetweenMatches = append(pausesBetweenMatches, val)
 		}

@@ -22,14 +22,14 @@ func (o *Optimizer) Optimize() {
 		swaps += o.optimizeBySwappingMatches()
 
 		log.Printf("Swaps: %d", swaps)
-		log.Printf("Current score: %.2f", getScore(o.Season.Schedule, o.Season.Players))
+		log.Printf("Current score: %.2f", GetScore(o.Season.Schedule, o.Season.Players))
 	}
 	log.Printf("Optimization finished")
 }
 
 func (o *Optimizer) optimizeBySwappingPlayers() int {
 	swaps := 0
-	currentScore := getScore(o.Season.Schedule, o.Season.Players)
+	currentScore := GetScore(o.Season.Schedule, o.Season.Players)
 	var newScore float64
 
 	for i, round := range o.Season.Schedule {
@@ -50,7 +50,7 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 					if !changed {
 						continue
 					}
-					newScore = getScore(o.Season.Schedule, o.Season.Players)
+					newScore = GetScore(o.Season.Schedule, o.Season.Players)
 					if newScore < currentScore {
 						swaps++
 						currentScore = newScore
@@ -63,7 +63,7 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 		}
 	}
 
-	currentScore = getScore(o.Season.Schedule, o.Season.Players)
+	currentScore = GetScore(o.Season.Schedule, o.Season.Players)
 
 	for i, round := range o.Season.Schedule {
 		if isInSlice(i, o.Season.fixedRounds) {
@@ -77,7 +77,7 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 				if !swapped {
 					continue
 				}
-				newScore = getScore(o.Season.Schedule, o.Season.Players)
+				newScore = GetScore(o.Season.Schedule, o.Season.Players)
 				if newScore < currentScore {
 					swaps++
 					currentScore = newScore
@@ -94,7 +94,7 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 
 func (o *Optimizer) optimizeBySwappingMatches() int {
 	swaps := 0
-	currentScore := getScore(o.Season.Schedule, o.Season.Players)
+	currentScore := GetScore(o.Season.Schedule, o.Season.Players)
 	indexCombinations := getIndexCombinations(o.Season.Schedule)
 	for _, combination := range indexCombinations {
 		roundIdx1 := combination[0]
@@ -108,7 +108,7 @@ func (o *Optimizer) optimizeBySwappingMatches() int {
 		if !swapped {
 			continue
 		}
-		newScore := getScore(o.Season.Schedule, o.Season.Players)
+		newScore := GetScore(o.Season.Schedule, o.Season.Players)
 		if newScore < currentScore {
 			swaps++
 			currentScore = newScore

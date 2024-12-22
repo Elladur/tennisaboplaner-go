@@ -117,7 +117,7 @@ func TestBalancedBetterThanEven(t *testing.T) {
 	valWorse, _ = getStdOfPauseBetweenMatches(worseSchedule, players)
 	assert.GreaterOrEqual(t, valBetter, valWorse)
 
-	valBetter = getScore(betterSchedule, players)
-	valWorse = getScore(worseSchedule, players)
+	valBetter = GetScore(betterSchedule, players)
+	valWorse = GetScore(worseSchedule, players)
 	assert.LessOrEqual(t, valBetter, valWorse)
 }
