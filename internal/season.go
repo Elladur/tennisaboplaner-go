@@ -66,7 +66,7 @@ func CreateSeason(players []Player, start time.Time, end time.Time, numberOfCour
 		}
 	}
 
-	return Season{
+	season := Season{
 		Players:        players,
 		Start:          start,
 		End:            end,
@@ -78,13 +78,13 @@ func CreateSeason(players []Player, start time.Time, end time.Time, numberOfCour
 		ExcludedDates:  excludedDates,
 		dates:          dates,
 	}
+	season.createSchedule()
+	return season
 }
 
 func (s *Season) createSchedule() {
+	s.Schedule = [][]Match{}
 	for i, d := range s.dates {
-		if isInSlice(d, s.ExcludedDates) {
-			continue
-		}
 		r, partial := s.createRound(d)
 		s.Schedule = append(s.Schedule, r)
 		if partial {
@@ -97,21 +97,23 @@ func (s *Season) createRound(date time.Time) ([]Match, bool) {
 	var matches []Match
 	playerIdx := shuffle(s.getPossiblePlayers(date))
 
-	for len(playerIdx) > 0 || len(matches) <= s.NumberOfCourts {
+	for len(playerIdx) > 0 && len(matches) < s.NumberOfCourts {
 		switch {
 		case len(playerIdx) >= 2:
-			playerIdx, p := pop(playerIdx)
-			playerIdx, q := pop(playerIdx)
+			var p, q uint8
+			playerIdx, p = pop(playerIdx)
+			playerIdx, q = pop(playerIdx)
 			match, _ := createMatch(p, q)
 			matches = append(matches, match)
 		case len(playerIdx) == 1:
-			_, p := pop(playerIdx)
+			var p uint8
+			playerIdx, p = pop(playerIdx)
 			match := createPartialMatch(p)
 			matches = append(matches, match)
 		}
 	}
 
-	return matches, len(matches) < s.NumberOfCourts
+	return matches, len(getPlayersOfRound(matches)) < s.NumberOfCourts * 2
 }
 
 func (s Season) getPossiblePlayers(date time.Time) []uint8 {
