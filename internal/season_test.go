@@ -106,24 +106,34 @@ func TestChangeMatch(t *testing.T) {
 }
 
 func TestSwapPlayersOfRound(t *testing.T) {
-	season := setupTestSeason()
-	season.createSchedule()
-	success := season.swapPlayersOfRound(0, 0, 1)
+	season := setupStaticTestSeason()
+	success := season.swapPlayersOfRound(0, 0, 3)
 	assert.True(t, success)
-	assert.Equal(t, uint8(1), season.Schedule[0][0].player1)
-	assert.Equal(t, uint8(0), season.Schedule[0][0].player2)
+	assert.Equal(t, uint8(2), season.Schedule[0][0].player1)
+	assert.Equal(t, uint8(3), season.Schedule[0][0].player2)
+	assert.Equal(t, uint8(0), season.Schedule[0][1].player1)
+	assert.Equal(t, uint8(1), season.Schedule[0][1].player2)
 
-	success = season.swapPlayersOfRound(0, 0, 2)
+	success = season.swapPlayersOfRound(0, 3, 2)
 	assert.False(t, success)
+	// check nothing changed
+	assert.Equal(t, uint8(2), season.Schedule[0][0].player1)
+	assert.Equal(t, uint8(3), season.Schedule[0][0].player2)
+	assert.Equal(t, uint8(0), season.Schedule[0][1].player1)
+	assert.Equal(t, uint8(1), season.Schedule[0][1].player2)
 
 	// Test swapping players not in the round
-	success = season.swapPlayersOfRound(0, 2, 3)
+	success = season.swapPlayersOfRound(0, 2, 4)
 	assert.False(t, success)
+	// check nothing changed
+	assert.Equal(t, uint8(2), season.Schedule[0][0].player1)
+	assert.Equal(t, uint8(3), season.Schedule[0][0].player2)
+	assert.Equal(t, uint8(0), season.Schedule[0][1].player1)
+	assert.Equal(t, uint8(1), season.Schedule[0][1].player2)
 }
 
 func TestSwitchMatches(t *testing.T) {
 	season := setupTestSeason()
-	season.createSchedule()
 	success := season.switchMatches(0, 0, 1, 1)
 	assert.True(t, success)
 	assert.Equal(t, season.Schedule[0][0], season.Schedule[1][1])
@@ -140,7 +150,6 @@ func TestSwitchMatches(t *testing.T) {
 
 func TestCheckIfRoundIsValid(t *testing.T) {
 	season := setupTestSeason()
-	season.createSchedule()
 	assert.True(t, season.checkIfRoundIsValid(0))
 
 	invalidMatch := Match{player1: 0, player2: 2, isPlayer2Set: true}
@@ -150,7 +159,6 @@ func TestCheckIfRoundIsValid(t *testing.T) {
 
 func TestCheckIfScheduleIsValid(t *testing.T) {
 	season := setupTestSeason()
-	season.createSchedule()
 	assert.True(t, season.checkIfScheduleIsValid())
 
 	invalidMatch := Match{player1: 0, player2: 2, isPlayer2Set: true}
