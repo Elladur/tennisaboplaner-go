@@ -2,7 +2,10 @@ module github.com/Elladur/tennisaboplaner-go
 
 go 1.23.4
 
-require github.com/stretchr/testify v1.10.0
+require (
+	github.com/montanaflynn/stats v0.7.1
+	github.com/stretchr/testify v1.10.0
+)
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
