@@ -1,6 +1,9 @@
 package internal
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type Player struct {
 	Name       string
@@ -24,4 +27,38 @@ func (p *Player) FromDict(d map[string]interface{}) {
 
 func (p Player) String() string {
 	return p.Name
+}
+
+func (p Player) MarshalJSON() ([]byte, error) {
+	var cannotPlay []string
+	for _, t := range p.CannotPlay {
+		cannotPlay = append(cannotPlay, t.Format("2006-01-02"))
+	}
+	return json.Marshal(map[string]interface{}{
+		"Name": p.Name,
+		"CannotPlay": cannotPlay,
+		"Weight": p.Weight,
+	})
+}
+
+func (p *Player) UnmarshalJSON(data []byte) error {
+	var player struct {
+		Name       string
+		CannotPlay []string
+		Weight     float64
+	}
+	err := json.Unmarshal(data, &player)
+	if err != nil {
+		return err
+	}
+	p.Name = player.Name
+	for _, s := range player.CannotPlay {
+		t, err := time.Parse("2006-01-02", s)
+		if err != nil {
+			return err
+		}
+		p.CannotPlay = append(p.CannotPlay, t)
+	}
+	p.Weight = player.Weight
+	return nil
 }
