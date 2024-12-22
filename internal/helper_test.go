@@ -8,9 +8,9 @@ import (
 
 func TestIsInSlice(t *testing.T) {
 	tests := []struct {
-		element interface{}
-		slice   interface{}
-		expected    bool
+		element  interface{}
+		slice    interface{}
+		expected bool
 	}{
 		{element: 1, slice: []int{1, 2, 3}, expected: true},
 		{element: 4, slice: []int{1, 2, 3}, expected: false},
@@ -88,7 +88,7 @@ func TestShuffle(t *testing.T) {
 				shuffled := shuffle(v)
 				assert.ElementsMatch(t, v, shuffled)
 				assert.NotEqual(t, shuffled, original)
-			case []float64: 
+			case []float64:
 				original := make([]float64, len(v))
 				copy(original, v)
 				shuffled := shuffle(v)

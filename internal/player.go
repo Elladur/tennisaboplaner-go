@@ -35,9 +35,9 @@ func (p Player) MarshalJSON() ([]byte, error) {
 		cannotPlay = append(cannotPlay, t.Format(time.DateOnly))
 	}
 	return json.Marshal(map[string]interface{}{
-		"Name": p.Name,
+		"Name":       p.Name,
 		"CannotPlay": cannotPlay,
-		"Weight": p.Weight,
+		"Weight":     p.Weight,
 	})
 }
 
