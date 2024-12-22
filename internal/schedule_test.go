@@ -23,7 +23,7 @@ func TestGetMatchIndizesOfPlayer(t *testing.T) {
 		},
 	}
 
-	expected := [][]int{{0, 0}, {1, 0}, {2, 1}}
+	expected := [][2]int{{0, 0}, {1, 0}, {2, 1}}
 	result := getMatchIndizesOfPlayer(schedule, player)
 	assert.Equal(t, expected, result)
 }
@@ -41,7 +41,7 @@ func TestGetMatchIndizesOfMatch(t *testing.T) {
 		},
 	}
 
-	expected := [][]int{{0, 0}, {1, 1}}
+	expected := [][2]int{{0, 0}, {1, 1}}
 	result := getMatchIndizesOfMatch(schedule, match)
 	assert.Equal(t, expected, result)
 }
@@ -59,7 +59,7 @@ func TestGetMatchIndizesOfPartialMatch(t *testing.T) {
 		},
 	}
 
-	expected := [][]int{{0, 0}, {1, 1}}
+	expected := [][2]int{{0, 0}, {1, 1}}
 	result := getMatchIndizesOfMatch(schedule, match)
 	assert.Equal(t, expected, result)
 }
