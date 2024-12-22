@@ -1,0 +1,13 @@
+repos:
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1  # Use the latest stable version
+    hooks:
+      - id: go-fmt         # Formats Go files using `gofmt`.
+      - id: go-lint        # Runs `golint` to check for style issues.
+      - id: go-vet         # Runs `go vet` to catch code issues.
+      - id: go-mod-tidy    # Ensures `go.mod` and `go.sum` are tidy.
+
+  - repo: https://github.com/zricethezav/gitleaks
+    rev: v8.22.0  # Use the latest version
+    hooks:
+      - id: gitleaks

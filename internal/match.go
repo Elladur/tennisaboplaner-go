@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+// Match represents a match between two players
+// player1 is always the player with the lower ID
 type Match struct {
 	player1      uint8
 	player2      uint8
@@ -17,29 +19,26 @@ func createMatch(player1 uint8, player2 uint8) (Match, error) {
 	}
 	if player1 < player2 {
 		return Match{player1: player1, player2: player2, isPlayer2Set: true}, nil
-	} else {
-		return Match{player1: player2, player2: player1, isPlayer2Set: true}, nil
 	}
+	return Match{player1: player2, player2: player1, isPlayer2Set: true}, nil
 }
 
 func createPartialMatch(player1 uint8) Match {
 	return Match{player1: player1, isPlayer2Set: false}
 }
 
-func (m Match) GetPlayers() []uint8 {
+func (m Match) getPlayers() []uint8 {
 	if m.isPlayer2Set {
 		return []uint8{m.player1, m.player2}
-	} else {
-		return []uint8{m.player1}
 	}
+	return []uint8{m.player1}
 }
 
 func (m Match) String(players *[]Player) string {
 	if m.isPlayer2Set {
 		return fmt.Sprintf("%s vs %s", (*players)[m.player1].Name, (*players)[m.player2].Name)
-	} else {
-		return fmt.Sprintf("%s vs ...", (*players)[m.player1].Name)
 	}
+	return fmt.Sprintf("%s vs ...", (*players)[m.player1].Name)
 }
 
 func canMatchBeAdded(matches []Match, match Match) bool {
@@ -55,7 +54,7 @@ func canMatchBeAdded(matches []Match, match Match) bool {
 }
 
 func (m *Match) replacePlayer(oldPlayer uint8, newPlayer uint8) error {
-	if isInSlice(newPlayer, m.GetPlayers()) {
+	if isInSlice(newPlayer, m.getPlayers()) {
 		return errors.New("new player is already in the match")
 	}
 	if m.player1 == oldPlayer {

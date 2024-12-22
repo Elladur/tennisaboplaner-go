@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// Season manages all the necessary information to create a schedule for an abo
 type Season struct {
 	Players        []Player
 	Start          time.Time
@@ -24,6 +25,7 @@ type simpleTime struct {
 	Minute uint8
 }
 
+// SeasonSettings are necessary to create a Season
 type SeasonSettings struct {
 	Players        []Player
 	Start          string
@@ -34,6 +36,7 @@ type SeasonSettings struct {
 	CalendarTitle  string
 }
 
+// CreateSeasonFromSettings creates a Season from the given settings
 func CreateSeasonFromSettings(settings SeasonSettings) (Season, error) {
 	start, err := time.Parse(time.DateTime, settings.Start)
 	if err != nil {
@@ -51,10 +54,10 @@ func CreateSeasonFromSettings(settings SeasonSettings) (Season, error) {
 			return Season{}, err
 		}
 	}
-	return CreateSeason(settings.Players, start, end, settings.NumberOfCourts, settings.CalendarTitle, settings.OverallCost, excludedDates), nil
+	return createSeason(settings.Players, start, end, settings.NumberOfCourts, settings.CalendarTitle, settings.OverallCost, excludedDates), nil
 }
 
-func CreateSeason(players []Player, start time.Time, end time.Time, numberOfCourts int, calendarTitle string, overallCosts float64, excludedDates []time.Time) Season {
+func createSeason(players []Player, start time.Time, end time.Time, numberOfCourts int, calendarTitle string, overallCosts float64, excludedDates []time.Time) Season {
 	startTime := simpleTime{uint8(start.Hour()), uint8(start.Minute())}
 	endTime := simpleTime{uint8(end.Hour()), uint8(end.Minute())}
 	start = start.Truncate(24 * time.Hour)
@@ -113,7 +116,7 @@ func (s *Season) createRound(date time.Time) ([]Match, bool) {
 		}
 	}
 
-	return matches, len(getPlayersOfRound(matches)) < s.NumberOfCourts * 2
+	return matches, len(getPlayersOfRound(matches)) < s.NumberOfCourts*2
 }
 
 func (s Season) getPossiblePlayers(date time.Time) []uint8 {
@@ -130,14 +133,13 @@ func (s *Season) changeMatch(roundIdx int, matchIdx int, newMatch Match) bool {
 	if isInSlice(roundIdx, s.fixedRounds) {
 		return false
 	}
-	old_match := s.Schedule[roundIdx][matchIdx]
+	oldMatch := s.Schedule[roundIdx][matchIdx]
 	s.Schedule[roundIdx][matchIdx] = newMatch
 	if s.checkIfRoundIsValid(roundIdx) {
 		return true
-	} else {
-		s.Schedule[roundIdx][matchIdx] = old_match
-		return false
 	}
+	s.Schedule[roundIdx][matchIdx] = oldMatch
+	return false
 }
 
 func (s Season) checkIfRoundIsValid(roundIdx int) bool {
@@ -204,15 +206,14 @@ func (s *Season) switchMatches(round1 int, match1 int, round2 int, match2 int) b
 	if isInSlice(round1, s.fixedRounds) || isInSlice(round2, s.fixedRounds) {
 		return false
 	}
-	match1_old := s.Schedule[round1][match1]
-	match2_old := s.Schedule[round2][match2]
-	s.Schedule[round1][match1] = match2_old
-	s.Schedule[round2][match2] = match1_old
+	oldMatch1 := s.Schedule[round1][match1]
+	oldMatch2 := s.Schedule[round2][match2]
+	s.Schedule[round1][match1] = oldMatch2
+	s.Schedule[round2][match2] = oldMatch1
 	if s.checkIfRoundIsValid(round1) && s.checkIfRoundIsValid(round2) {
 		return true
-	} else {
-		s.Schedule[round1][match1] = match1_old
-		s.Schedule[round2][match2] = match2_old
-		return false
 	}
+	s.Schedule[round1][match1] = oldMatch1
+	s.Schedule[round2][match2] = oldMatch2
+	return false
 }

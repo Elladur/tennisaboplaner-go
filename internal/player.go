@@ -5,30 +5,18 @@ import (
 	"time"
 )
 
+// Player represents a player with a name, a list of dates when the player cannot play and a weight to determine if he wants to play full abo or less
 type Player struct {
 	Name       string
 	CannotPlay []time.Time
 	Weight     float64
 }
 
-func (p Player) ToDict() map[string]interface{} {
-	return map[string]interface{}{
-		"name":        p.Name,
-		"cannot_play": p.CannotPlay,
-		"weight":      p.Weight,
-	}
-}
-
-func (p *Player) FromDict(d map[string]interface{}) {
-	p.Name = d["name"].(string)
-	p.CannotPlay = d["cannot_play"].([]time.Time)
-	p.Weight = d["weight"].(float64)
-}
-
 func (p Player) String() string {
 	return p.Name
 }
 
+// MarshalJSON marshals a Player to JSON
 func (p Player) MarshalJSON() ([]byte, error) {
 	var cannotPlay []string
 	for _, t := range p.CannotPlay {
@@ -41,6 +29,7 @@ func (p Player) MarshalJSON() ([]byte, error) {
 	})
 }
 
+// UnmarshalJSON unmarshals a Player from JSON
 func (p *Player) UnmarshalJSON(data []byte) error {
 	var player struct {
 		Name       string

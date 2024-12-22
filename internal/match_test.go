@@ -38,11 +38,11 @@ func TestCreatePartialMatch(t *testing.T) {
 
 func TestGetPlayers(t *testing.T) {
 	match := Match{player1: 1, player2: 2, isPlayer2Set: true}
-	players := match.GetPlayers()
+	players := match.getPlayers()
 	assert.Equal(t, []uint8{1, 2}, players, "Players should be [1, 2]")
 
 	partialMatch := Match{player1: 1, isPlayer2Set: false}
-	players = partialMatch.GetPlayers()
+	players = partialMatch.getPlayers()
 	assert.Equal(t, []uint8{1}, players, "Players should be [1]")
 }
 
