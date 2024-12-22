@@ -87,6 +87,17 @@ func TestCreateRound(t *testing.T) {
 	assert.True(t, partial)
 }
 
+func TestGetPossiblePlayers(t *testing.T) {
+	season := setupStaticTestSeason()
+	date := season.dates[0]
+	players := season.getPossiblePlayers(date)
+	assert.Equal(t, []uint8{0, 1, 2, 3}, players)
+
+	date2 := season.dates[1]
+	players = season.getPossiblePlayers(date2)
+	assert.Equal(t, 5, len(players))
+}
+
 func TestChangeMatch(t *testing.T) {
 	season := setupStaticTestSeason()
 	newMatch := Match{player1: 3, player2: 2, isPlayer2Set: true}
@@ -133,18 +144,24 @@ func TestSwapPlayersOfRound(t *testing.T) {
 }
 
 func TestSwitchMatches(t *testing.T) {
-	season := setupTestSeason()
-	success := season.switchMatches(0, 0, 1, 1)
+	season := setupStaticTestSeason()
+	oldMatch1 := season.Schedule[1][0]
+	oldMatch2 := season.Schedule[2][1]
+	success := season.switchMatches(1, 0, 2, 1)
 	assert.True(t, success)
-	assert.Equal(t, season.Schedule[0][0], season.Schedule[1][1])
-	assert.Equal(t, season.Schedule[1][1], season.Schedule[0][0])
+	assert.Equal(t, season.Schedule[1][0], oldMatch2)
+	assert.Equal(t, season.Schedule[2][1], oldMatch1)
 
-	success = season.switchMatches(0, 0, 1, 2)
+	oldMatch1 = season.Schedule[0][0]
+	oldMatch2 = season.Schedule[1][1]
+	success = season.switchMatches(0, 0, 1, 1)
 	assert.False(t, success)
+	assert.Equal(t, season.Schedule[0][0], oldMatch1)
+	assert.Equal(t, season.Schedule[1][1], oldMatch2)
 
 	// Test switching matches in fixed rounds
-	season.fixedRounds = append(season.fixedRounds, 0)
-	success = season.switchMatches(0, 0, 1, 1)
+	season.fixedRounds = append(season.fixedRounds, 1)
+	success = season.switchMatches(1, 0, 2, 1)
 	assert.False(t, success)
 }
 
@@ -152,8 +169,16 @@ func TestCheckIfRoundIsValid(t *testing.T) {
 	season := setupTestSeason()
 	assert.True(t, season.checkIfRoundIsValid(0))
 
-	invalidMatch := Match{player1: 0, player2: 2, isPlayer2Set: true}
-	season.Schedule[0][0] = invalidMatch
+	invalidRound := []Match{{player1: 0, player2: 2, isPlayer2Set: true}, {player1: 0, player2: 2, isPlayer2Set: true}}
+	season.Schedule[0] = invalidRound
+	assert.False(t, season.checkIfRoundIsValid(0))
+
+	season.Schedule[0] = []Match{season.Schedule[0][0]}
+	assert.False(t, season.checkIfRoundIsValid(0))
+
+	// player 4 cant play in first round
+	invalidRound = []Match{{player1: 0, player2: 2, isPlayer2Set: true}, {player1: 3, player2: 4, isPlayer2Set: true}}
+	season.Schedule[0] = invalidRound
 	assert.False(t, season.checkIfRoundIsValid(0))
 }
 
@@ -161,8 +186,8 @@ func TestCheckIfScheduleIsValid(t *testing.T) {
 	season := setupTestSeason()
 	assert.True(t, season.checkIfScheduleIsValid())
 
-	invalidMatch := Match{player1: 0, player2: 2, isPlayer2Set: true}
-	season.Schedule[0][0] = invalidMatch
+	invalidRound := []Match{{player1: 0, player2: 2, isPlayer2Set: true}, {player1: 0, player2: 2, isPlayer2Set: true}}
+	season.Schedule[5] = invalidRound
 	assert.False(t, season.checkIfScheduleIsValid())
 }
 
@@ -173,12 +198,12 @@ func setupTestSeason() Season {
 	excludedDates := []time.Time{time.Date(2023, 1, 29, 0, 0, 0, 0, time.UTC)}
 
 	season := createSeason(players, start, end, 2, "Test Season", 100.0, excludedDates)
-	data, err := json.Marshal(season)
-	if err != nil {
-		fmt.Println(err)
-	}
-	datastr := string(data)
-	fmt.Println(datastr)
+	//data, err := json.Marshal(season)
+	//if err != nil {
+	//fmt.Println(err)
+	//}
+	//datastr := string(data)
+	//fmt.Println(datastr)
 	return season
 }
 
