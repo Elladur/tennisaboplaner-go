@@ -207,7 +207,7 @@ func (s *Season) swapPlayersOfRound(roundIdx int, player1 uint8, player2 uint8) 
 	return true
 }
 
-func (s *Season) switchMatches(round1 int, match1 int, round2 int, match2 int) bool {
+func (s *Season) swapMatches(round1 int, match1 int, round2 int, match2 int) bool {
 	if isInSlice(round1, s.fixedRounds) || isInSlice(round2, s.fixedRounds) {
 		return false
 	}

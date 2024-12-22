@@ -143,25 +143,25 @@ func TestSwapPlayersOfRound(t *testing.T) {
 	assert.Equal(t, uint8(1), season.Schedule[0][1].player2)
 }
 
-func TestSwitchMatches(t *testing.T) {
+func TestSwapMatches(t *testing.T) {
 	season := setupStaticTestSeason()
 	oldMatch1 := season.Schedule[1][0]
 	oldMatch2 := season.Schedule[2][1]
-	success := season.switchMatches(1, 0, 2, 1)
+	success := season.swapMatches(1, 0, 2, 1)
 	assert.True(t, success)
 	assert.Equal(t, season.Schedule[1][0], oldMatch2)
 	assert.Equal(t, season.Schedule[2][1], oldMatch1)
 
 	oldMatch1 = season.Schedule[0][0]
 	oldMatch2 = season.Schedule[1][1]
-	success = season.switchMatches(0, 0, 1, 1)
+	success = season.swapMatches(0, 0, 1, 1)
 	assert.False(t, success)
 	assert.Equal(t, season.Schedule[0][0], oldMatch1)
 	assert.Equal(t, season.Schedule[1][1], oldMatch2)
 
 	// Test switching matches in fixed rounds
 	season.fixedRounds = append(season.fixedRounds, 1)
-	success = season.switchMatches(1, 0, 2, 1)
+	success = season.swapMatches(1, 0, 2, 1)
 	assert.False(t, success)
 }
 
