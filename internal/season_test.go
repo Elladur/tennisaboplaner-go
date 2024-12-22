@@ -89,7 +89,7 @@ func TestCreateRound(t *testing.T) {
 
 func TestChangeMatch(t *testing.T) {
 	season := setupStaticTestSeason()
-	newMatch := Match{player1: 3, player2: 5, isPlayer2Set: true}
+	newMatch := Match{player1: 3, player2: 2, isPlayer2Set: true}
 	success := season.changeMatch(1, 0, newMatch)
 	assert.True(t, success)
 	assert.Equal(t, newMatch, season.Schedule[1][0])
@@ -181,5 +181,6 @@ func setupStaticTestSeason() Season {
 	if err != nil {
 		fmt.Println(err)
 	}
+	season.dates = generateDates(season.Start, season.End, season.ExcludedDates)
 	return season
 }
