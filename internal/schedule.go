@@ -12,6 +12,30 @@ func getMatchIndizesOfPlayer(schedule [][]Match, player uint8) [][2]int {
 	return indizes
 }
 
+func getRoundIndizesOfPlayer(schedule [][]Match, player uint8) []int {
+	var indizes []int
+	for i, round := range schedule {
+		for _, match := range round {
+			if match.player1 == player || (match.isPlayer2Set && match.player2 == player) {
+				indizes = append(indizes, i)
+			}
+		}
+	}
+	return indizes
+}
+
+func getMatchesCountOfPlayer(schedule [][]Match, player uint8) int {
+	num := 0
+	for _, round := range schedule {
+		for _, match := range round {
+			if match.player1 == player || (match.isPlayer2Set && match.player2 == player) {
+				num++
+			}
+		}
+	}
+	return num
+}
+
 func getMatchIndizesOfMatch(schedule [][]Match, match Match) [][2]int {
 	var indizes [][2]int
 	for i, round := range schedule {

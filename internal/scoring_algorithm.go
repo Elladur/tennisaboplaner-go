@@ -41,7 +41,7 @@ func GetScore(schedule [][]Match, players []Player) float64 {
 func getStdOfPlayerTimesPlaying(schedule [][]Match, players []Player) (float64, error) {
 	var weightedTimesPlayer []float64
 	for i, p := range players {
-		val := float64(len(getMatchIndizesOfPlayer(schedule, uint8(i)))) / p.Weight
+		val := float64(getMatchesCountOfPlayer(schedule, uint8(i))) / p.Weight
 		weightedTimesPlayer = append(weightedTimesPlayer, val)
 	}
 	return stats.StandardDeviation(weightedTimesPlayer)
@@ -66,7 +66,7 @@ func getStdOfPossibleMatches(schedule [][]Match, players []Player) (float64, err
 func getStdOfPauseBetweenPlaying(schedule [][]Match, players []Player) (float64, error) {
 	pausesBetweenPlaying := []float64{}
 	for i := range players {
-		roundsPlaying := convertMatchIndizesToRoundIndizes(getMatchIndizesOfPlayer(schedule, uint8(i)))
+		roundsPlaying := getRoundIndizesOfPlayer(schedule, uint8(i))
 		val := calcStdOfPauses(schedule, roundsPlaying)
 		pausesBetweenPlaying = append(pausesBetweenPlaying, val)
 	}
