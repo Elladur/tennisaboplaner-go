@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -86,12 +88,11 @@ func TestCreateRound(t *testing.T) {
 }
 
 func TestChangeMatch(t *testing.T) {
-	season := setupTestSeason()
-	season.createSchedule()
-	newMatch := Match{player1: 0, player2: 1, isPlayer2Set: true}
-	success := season.changeMatch(0, 0, newMatch)
+	season := setupStaticTestSeason()
+	newMatch := Match{player1: 3, player2: 5, isPlayer2Set: true}
+	success := season.changeMatch(1, 0, newMatch)
 	assert.True(t, success)
-	assert.Equal(t, newMatch, season.Schedule[0][0])
+	assert.Equal(t, newMatch, season.Schedule[1][0])
 
 	invalidMatch := season.Schedule[0][1]
 	success = season.changeMatch(0, 0, invalidMatch)
@@ -158,11 +159,27 @@ func TestCheckIfScheduleIsValid(t *testing.T) {
 }
 
 func setupTestSeason() Season {
-	players := []Player{{Name: "Player1"}, {Name: "Player2"}, {Name: "Player3"}, {Name: "Player4"}}
+	players := []Player{{Name: "Player1", Weight: 1}, {Name: "Player2", Weight: 1}, {Name: "Player3", Weight: 1}, {Name: "Player4", Weight: 1}, {Name: "Player5", Weight: 1, CannotPlay: []time.Time{time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)}}}
 	start := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
-	end := time.Date(2023, 12, 31, 12, 0, 0, 0, time.UTC)
-	excludedDates := []time.Time{time.Date(2023, 6, 1, 0, 0, 0, 0, time.UTC)}
+	end := time.Date(2023, 2, 31, 12, 0, 0, 0, time.UTC)
+	excludedDates := []time.Time{time.Date(2023, 1, 29, 0, 0, 0, 0, time.UTC)}
 
 	season := createSeason(players, start, end, 2, "Test Season", 100.0, excludedDates)
+	data, err := json.Marshal(season)
+	if err != nil {
+		fmt.Println(err)
+	}
+	datastr := string(data)
+	fmt.Println(datastr)
+	return season
+}
+
+func setupStaticTestSeason() Season {
+	data := "{\"Players\":[{\"CannotPlay\":null,\"Name\":\"Player1\",\"Weight\":1},{\"CannotPlay\":null,\"Name\":\"Player2\",\"Weight\":1},{\"CannotPlay\":null,\"Name\":\"Player3\",\"Weight\":1},{\"CannotPlay\":null,\"Name\":\"Player4\",\"Weight\":1},{\"CannotPlay\":[\"2023-01-01\"],\"Name\":\"Player5\",\"Weight\":1}],\"Start\":\"2023-01-01T00:00:00Z\",\"End\":\"2023-03-03T00:00:00Z\",\"StartTime\":{\"Hour\":10,\"Minute\":0},\"EndTime\":{\"Hour\":12,\"Minute\":0},\"NumberOfCourts\":2,\"CalendarTitle\":\"Test Season\",\"OverallCosts\":100,\"ExcludedDates\":[\"2023-01-29T00:00:00Z\"],\"Schedule\":[[{\"IsPlayer2Set\":true,\"Player1\":0,\"Player2\":2},{\"IsPlayer2Set\":true,\"Player1\":1,\"Player2\":3}],[{\"IsPlayer2Set\":true,\"Player1\":3,\"Player2\":4},{\"IsPlayer2Set\":true,\"Player1\":0,\"Player2\":1}],[{\"IsPlayer2Set\":true,\"Player1\":0,\"Player2\":1},{\"IsPlayer2Set\":true,\"Player1\":2,\"Player2\":4}],[{\"IsPlayer2Set\":true,\"Player1\":1,\"Player2\":2},{\"IsPlayer2Set\":true,\"Player1\":0,\"Player2\":3}],[{\"IsPlayer2Set\":true,\"Player1\":1,\"Player2\":3},{\"IsPlayer2Set\":true,\"Player1\":0,\"Player2\":2}],[{\"IsPlayer2Set\":true,\"Player1\":2,\"Player2\":3},{\"IsPlayer2Set\":true,\"Player1\":1,\"Player2\":4}],[{\"IsPlayer2Set\":true,\"Player1\":0,\"Player2\":2},{\"IsPlayer2Set\":true,\"Player1\":1,\"Player2\":4}],[{\"IsPlayer2Set\":true,\"Player1\":0,\"Player2\":3},{\"IsPlayer2Set\":true,\"Player1\":1,\"Player2\":4}]]}"
+	season := Season{}
+	err := json.Unmarshal([]byte(data), &season)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return season
 }

@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -11,6 +12,44 @@ type Match struct {
 	player1      uint8
 	player2      uint8
 	isPlayer2Set bool
+}
+
+// MarshalJSON marshals a Match to JSON
+func (m Match) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"Player1":      int(m.player1),
+		"Player2":      int(m.player2),
+		"IsPlayer2Set": m.isPlayer2Set,
+	})
+}
+
+// UnmarshalJSON unmarshals a Match from JSON
+func (m *Match) UnmarshalJSON(data []byte) error {
+	var match struct {
+		Player1      int
+		Player2      int
+		IsPlayer2Set bool
+	}
+	err := json.Unmarshal(data, &match)
+	if err != nil {
+		return err
+	}
+	if match.IsPlayer2Set {
+		val, err := createMatch(uint8(match.Player1), uint8(match.Player2))
+		if err != nil {
+			return err
+		}
+		m.player1 = val.player1
+		m.player2 = val.player2
+		m.isPlayer2Set = true
+		return nil
+	}
+	val := createPartialMatch(uint8(match.Player1))
+	m.player1 = val.player1
+	m.player2 = val.player2
+	m.isPlayer2Set = true
+	m = &val
+	return nil
 }
 
 func createMatch(player1 uint8, player2 uint8) (Match, error) {
