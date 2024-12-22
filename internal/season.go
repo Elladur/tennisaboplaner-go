@@ -24,6 +24,36 @@ type simpleTime struct {
 	Minute uint8
 }
 
+type SeasonSettings struct {
+	Players []Player
+	Start string
+	End string
+	ExcludedDates []string
+	NumberOfCourts int
+	OverallCost float64
+	CalendarTitle string
+}
+
+func CreateSeasonFromSettings(settings SeasonSettings) (Season, error) {
+	start, err := time.Parse(time.DateTime, settings.Start)
+	if err != nil {
+		return Season{}, err
+	}
+	end, err := time.Parse(time.DateTime, settings.End)
+	if err != nil {
+		return Season{}, err
+	}
+	var excludedDates []time.Time
+	for _, s := range settings.ExcludedDates {
+		t, err := time.Parse(time.DateOnly, s)
+		excludedDates = append(excludedDates, t)
+		if err != nil {
+			return Season{}, err
+		}
+	}
+	return CreateSeason(settings.Players, start, end, settings.NumberOfCourts, settings.CalendarTitle, settings.OverallCost, excludedDates), nil
+}
+
 func CreateSeason(players []Player, start time.Time, end time.Time, numberOfCourts int, calendarTitle string, overallCosts float64, excludedDates []time.Time) Season {
 	startTime := simpleTime{uint8(start.Hour()), uint8(start.Minute())}
 	endTime := simpleTime{uint8(end.Hour()), uint8(end.Minute())}
@@ -94,26 +124,26 @@ func (s Season) getPossiblePlayers(date time.Time) []uint8 {
 	return players
 }
 
-func (s *Season) changeMatch(round_index int, match_index int, new_match Match) bool {
-	if isInSlice(round_index, s.fixedRounds) {
+func (s *Season) changeMatch(roundIdx int, matchIdx int, newMatch Match) bool {
+	if isInSlice(roundIdx, s.fixedRounds) {
 		return false
 	}
-	old_match := s.Schedule[round_index][match_index]
-	s.Schedule[round_index][match_index] = new_match
-	if s.checkIfRoundIsValid(round_index) {
+	old_match := s.Schedule[roundIdx][matchIdx]
+	s.Schedule[roundIdx][matchIdx] = newMatch
+	if s.checkIfRoundIsValid(roundIdx) {
 		return true
 	} else {
-		s.Schedule[round_index][match_index] = old_match
+		s.Schedule[roundIdx][matchIdx] = old_match
 		return false
 	}
 }
 
-func (s Season) checkIfRoundIsValid(round_index int) bool {
-	players := getPlayersOfRound(s.Schedule[round_index])
-	if !isInSlice(round_index, s.fixedRounds) && len(players) != 2 * s.NumberOfCourts  {
+func (s Season) checkIfRoundIsValid(roundIdx int) bool {
+	players := getPlayersOfRound(s.Schedule[roundIdx])
+	if !isInSlice(roundIdx, s.fixedRounds) && len(players) != 2 * s.NumberOfCourts  {
 		return false
 	}
-	date := s.dates[round_index]
+	date := s.dates[roundIdx]
 	for _, idx := range players {
 		if isInSlice(date, s.Players[idx].CannotPlay) {
 			return false
@@ -129,4 +159,58 @@ func (s Season) checkIfScheduleIsValid() bool {
 		}
 	}
 	return true
+}
+
+func (s *Season) swapPlayersOfRound(roundIdx int, player1 uint8, player2 uint8) bool {
+	players := getPlayersOfRound(s.Schedule[roundIdx])
+	if !isInSlice(player1, players) || !isInSlice(player2, players) {
+		return false
+	}
+	for i, m := range s.Schedule[roundIdx] {
+		if m.isPlayer2Set{
+			switch {
+				case m.player1 == player1 && m.player2 == player2:
+					return false
+				case m.player1 == player2 && m.player2 == player1:
+					return false
+				case m.player1 == player1:
+					match, _ := createMatch(player2, m.player2)
+					s.Schedule[roundIdx][i] = match
+				case m.player2 == player1:
+					match, _ := createMatch(player2, m.player1)
+					s.Schedule[roundIdx][i] = match
+				case m.player1 == player2:
+					match, _ := createMatch(player1, m.player2)
+					s.Schedule[roundIdx][i] = match
+				case m.player2 == player2:
+					match, _ := createMatch(player1, m.player1)
+					s.Schedule[roundIdx][i] = match
+			}
+		} else {
+			switch {
+				case m.player1 == player1:
+					s.Schedule[roundIdx][i] = createPartialMatch(player2)
+				case m.player1 == player2:
+					s.Schedule[roundIdx][i] = createPartialMatch(player1)
+			}
+		}
+	}
+	return true
+}
+
+func (s *Season) switchMatches(round1 int, match1 int, round2 int, match2 int) bool {
+	if isInSlice(round1, s.fixedRounds) || isInSlice(round2, s.fixedRounds) {
+		return false
+	}
+	match1_old := s.Schedule[round1][match1]
+	match2_old := s.Schedule[round2][match2]
+	s.Schedule[round1][match1] = match2_old
+	s.Schedule[round2][match2] = match1_old
+	if s.checkIfRoundIsValid(round1) && s.checkIfRoundIsValid(round2) {
+		return true
+	} else {
+		s.Schedule[round1][match1] = match1_old
+		s.Schedule[round2][match2] = match2_old
+		return false
+	}
 }

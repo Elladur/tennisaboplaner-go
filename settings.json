@@ -1,0 +1,44 @@
+{
+    "CalendarTitle": "Tennisabo",
+    "Start": "2022-09-01 19:00:00",
+    "End": "2023-05-01 21:00:00",
+    "ExcludedDates": ["2022-09-22"],
+    "OverallCost": 1000,
+    "NumberOfCourts": 2,
+    "Players": [
+        {
+            "Name": "player1",
+            "CannotPlay": [
+                "2022-09-01"
+            ],
+            "Weight": 0.5
+        },
+        {
+            "Name": "player2",
+            "CannotPlay": [
+                "2022-09-08",
+                "2022-09-15"
+            ],
+            "Weight": 1
+        },
+        {
+            "Name": "player3",
+            "CannotPlay": [
+                "2022-09-22"
+            ],
+            "Weight": 1
+        },
+        {
+            "Name": "player4",
+            "CannotPlay": [
+                "2022-09-29"
+            ],
+            "Weight": 1
+        },
+        {
+            "Name": "player5",
+            "CannotPlay": [],
+            "Weight": 1
+        }
+    ]
+}

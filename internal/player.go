@@ -32,7 +32,7 @@ func (p Player) String() string {
 func (p Player) MarshalJSON() ([]byte, error) {
 	var cannotPlay []string
 	for _, t := range p.CannotPlay {
-		cannotPlay = append(cannotPlay, t.Format("2006-01-02"))
+		cannotPlay = append(cannotPlay, t.Format(time.DateOnly))
 	}
 	return json.Marshal(map[string]interface{}{
 		"Name": p.Name,
@@ -53,7 +53,7 @@ func (p *Player) UnmarshalJSON(data []byte) error {
 	}
 	p.Name = player.Name
 	for _, s := range player.CannotPlay {
-		t, err := time.Parse("2006-01-02", s)
+		t, err := time.Parse(time.DateOnly, s)
 		if err != nil {
 			return err
 		}
