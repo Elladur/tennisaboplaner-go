@@ -13,6 +13,7 @@ import (
 const scheduleSheet = "Sheet1"
 const scheduleSheetName = "Schedule"
 const opponentSheet = "Partner by Player"
+const costSheet = "Cost"
 
 // Export the season into various files (excel & ical)
 func (s Season) Export(directory string) error {
@@ -93,6 +94,28 @@ func (s Season) exportExcel(directoy string) error {
 					return err
 				}
 			}
+		}
+	}
+
+	// new sheet for costs
+	costPerMatch := s.OverallCosts / float64(len(s.Schedule)*s.NumberOfCourts) / 2
+	_, err = f.NewSheet(costSheet)
+	if err != nil {
+		return err
+	}
+	if err := f.SetCellValue(opponentSheet, getCell(0, 0), "Match"); err != nil {
+		return err
+	}
+	if err := f.SetCellValue(opponentSheet, getCell(1, 0), "Cost"); err != nil {
+		return err
+	}
+	for i := range s.Players {
+		timesPlaying := float64(len(getRoundIndizesOfPlayer(s.Schedule, i)))
+		if err := f.SetCellValue(opponentSheet, getCell(0, i+1), timesPlaying); err != nil {
+			return err
+		}
+		if err := f.SetCellValue(opponentSheet, getCell(1, i+1), costPerMatch*timesPlaying); err != nil {
+			return err
 		}
 	}
 
