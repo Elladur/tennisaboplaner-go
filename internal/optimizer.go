@@ -9,8 +9,9 @@ type Optimizer struct {
 
 // Optimize is the main function of the optimizer
 // It will optimize the season in a way that the score is minimal for the schedule
-func (o *Optimizer) Optimize() {
+func (o *Optimizer) Optimize() float64 {
 	swaps := 1
+	var currentScore float64
 	for swaps > 0 {
 		swaps = 0
 		log.Printf("Start a new round of optimization")
@@ -22,14 +23,16 @@ func (o *Optimizer) Optimize() {
 		swaps += o.optimizeBySwappingMatches()
 
 		log.Printf("Swaps: %d", swaps)
-		log.Printf("Current score: %.2f", GetScore(o.Season.Schedule, o.Season.Players))
+		currentScore = o.Season.scorer.GetScore(o.Season.Schedule, o.Season.Players)
+		log.Printf("Current score: %.2f", currentScore)
 	}
 	log.Printf("Optimization finished")
+	return currentScore
 }
 
 func (o *Optimizer) optimizeBySwappingPlayers() int {
 	swaps := 0
-	currentScore := GetScore(o.Season.Schedule, o.Season.Players)
+	currentScore := o.Season.scorer.GetScore(o.Season.Schedule, o.Season.Players)
 	var newScore float64
 
 	for i, round := range o.Season.Schedule {
@@ -50,7 +53,7 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 					if !changed {
 						continue
 					}
-					newScore = GetScore(o.Season.Schedule, o.Season.Players)
+					newScore = o.Season.scorer.GetScore(o.Season.Schedule, o.Season.Players)
 					if newScore < currentScore {
 						swaps++
 						currentScore = newScore
@@ -63,7 +66,7 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 		}
 	}
 
-	currentScore = GetScore(o.Season.Schedule, o.Season.Players)
+	currentScore = o.Season.scorer.GetScore(o.Season.Schedule, o.Season.Players)
 
 	for i, round := range o.Season.Schedule {
 		if isInSlice(i, o.Season.fixedRounds) {
@@ -77,7 +80,7 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 				if !swapped {
 					continue
 				}
-				newScore = GetScore(o.Season.Schedule, o.Season.Players)
+				newScore = o.Season.scorer.GetScore(o.Season.Schedule, o.Season.Players)
 				if newScore < currentScore {
 					swaps++
 					currentScore = newScore
@@ -94,7 +97,7 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 
 func (o *Optimizer) optimizeBySwappingMatches() int {
 	swaps := 0
-	currentScore := GetScore(o.Season.Schedule, o.Season.Players)
+	currentScore := o.Season.scorer.GetScore(o.Season.Schedule, o.Season.Players)
 	indexCombinations := getIndexCombinations(o.Season.Schedule)
 	for _, combination := range indexCombinations {
 		roundIdx1 := combination[0]
@@ -108,7 +111,7 @@ func (o *Optimizer) optimizeBySwappingMatches() int {
 		if !swapped {
 			continue
 		}
-		newScore := GetScore(o.Season.Schedule, o.Season.Players)
+		newScore := o.Season.scorer.GetScore(o.Season.Schedule, o.Season.Players)
 		if newScore < currentScore {
 			swaps++
 			currentScore = newScore

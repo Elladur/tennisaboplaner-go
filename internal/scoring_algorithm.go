@@ -6,30 +6,86 @@ import (
 	"github.com/montanaflynn/stats"
 )
 
+// Scorer caches scoring results and calculates the new score
+type Scorer struct {
+	isInitalized                   bool
+	players                        []Player
+	playersPlaying                 []float64
+	matchesPlaying                 map[Match]float64
+	playersPauses                  []float64
+	matchesPauses                  map[Match]float64
+	changedPlayerSinceCalculation  []int
+	changedMatchesSinceCalculation []Match
+}
+
+func (s *Scorer) initialize(schedule [][]Match, players []Player) {
+	s.players = players
+	s.playersPlaying = make([]float64, len(players))
+	s.playersPauses = make([]float64, len(players))
+	s.matchesPlaying = make(map[Match]float64)
+	s.matchesPauses = make(map[Match]float64)
+
+	// initialize players
+	for i := range s.players {
+		s.calcPlayersPlaying(schedule, i)
+		s.calcPausePlayer(schedule, i)
+	}
+	// initialize matches
+	for i := range players {
+		for j := i + 1; j < len(players); j++ {
+			match, err := createMatch(i, j)
+			if err != nil {
+				continue
+			}
+			s.calcMatchesPlaying(schedule, match)
+			s.calcPauseMatch(schedule, match)
+		}
+	}
+	s.isInitalized = true
+}
+
+func (s *Scorer) updateCachedData(schedule [][]Match) {
+	for _, p := range s.changedPlayerSinceCalculation {
+		s.calcPlayersPlaying(schedule, p)
+		s.calcPausePlayer(schedule, p)
+	}
+	s.changedPlayerSinceCalculation = s.changedPlayerSinceCalculation[:0]
+	for _, m := range s.changedMatchesSinceCalculation {
+		s.calcMatchesPlaying(schedule, m)
+		s.calcPauseMatch(schedule, m)
+	}
+	s.changedMatchesSinceCalculation = s.changedMatchesSinceCalculation[:0]
+}
+
 // GetScore gives the value which was used to optimize the schedule
-func GetScore(schedule [][]Match, players []Player) float64 {
+func (s *Scorer) GetScore(schedule [][]Match, players []Player) float64 {
+	if !s.isInitalized {
+		s.initialize(schedule, players)
+	}
 	numberRounds := float64(len(schedule))
 	var score float64
 
-	val1, err := getStdOfPlayerTimesPlaying(schedule, players)
+	s.updateCachedData(schedule)
+
+	val1, err := stats.StandardDeviation(s.playersPlaying)
 	if err != nil {
 		return math.MaxFloat64
 	}
 	score += val1 * numberRounds
 
-	val2, err := getStdOfPossibleMatches(schedule, players)
+	val2, err := stats.StandardDeviation(convertToSlice(s.matchesPlaying))
 	if err != nil {
 		return math.MaxFloat64
 	}
 	score += val2 * numberRounds
 
-	val3, err := getStdOfPauseBetweenPlaying(schedule, players)
+	val3, err := stats.Sum(s.playersPauses)
 	if err != nil {
 		return math.MaxFloat64
 	}
 	score += val3
 
-	val4, err := getStdOfPauseBetweenMatches(schedule, players)
+	val4, err := stats.Sum(convertToSlice(s.matchesPauses))
 	if err != nil {
 		return math.MaxFloat64
 	}
@@ -38,55 +94,24 @@ func GetScore(schedule [][]Match, players []Player) float64 {
 	return score
 }
 
-func getStdOfPlayerTimesPlaying(schedule [][]Match, players []Player) (float64, error) {
-	var weightedTimesPlayer []float64
-	for i, p := range players {
-		val := float64(getMatchesCountOfPlayer(schedule, i)) / p.Weight
-		weightedTimesPlayer = append(weightedTimesPlayer, val)
-	}
-	return stats.StandardDeviation(weightedTimesPlayer)
+func (s *Scorer) calcPlayersPlaying(schedule [][]Match, playerIdx int) {
+	s.playersPlaying[playerIdx] = float64(getMatchesCountOfPlayer(schedule, playerIdx)) / s.players[playerIdx].Weight
 }
 
-func getStdOfPossibleMatches(schedule [][]Match, players []Player) (float64, error) {
-	var weightedPossibleMatches []float64
-	for i := range players {
-		for j := i + 1; j < len(players); j++ {
-			combinedWeight := players[i].Weight + players[j].Weight
-			match, err := createMatch(i, j)
-			if err != nil {
-				continue
-			}
-			val := float64(getCountOfMatchInSchedule(schedule, match)) / combinedWeight
-			weightedPossibleMatches = append(weightedPossibleMatches, val)
-		}
-	}
-	return stats.StandardDeviation(weightedPossibleMatches)
+func (s *Scorer) calcMatchesPlaying(schedule [][]Match, match Match) {
+	// only works for full matches and is only used there
+	combinedWeight := s.players[match.player1].Weight + s.players[match.player2].Weight
+	s.matchesPlaying[match] = float64(getCountOfMatchInSchedule(schedule, match)) / combinedWeight
 }
 
-func getStdOfPauseBetweenPlaying(schedule [][]Match, players []Player) (float64, error) {
-	pausesBetweenPlaying := []float64{}
-	for i := range players {
-		roundsPlaying := getRoundIndizesOfPlayer(schedule, i)
-		val := calcStdOfPauses(schedule, roundsPlaying)
-		pausesBetweenPlaying = append(pausesBetweenPlaying, val)
-	}
-	return stats.Sum(pausesBetweenPlaying)
+func (s *Scorer) calcPausePlayer(schedule [][]Match, playerIdx int) {
+	roundsPlaying := getRoundIndizesOfPlayer(schedule, playerIdx)
+	s.playersPauses[playerIdx] = calcStdOfPauses(schedule, roundsPlaying)
 }
 
-func getStdOfPauseBetweenMatches(schedule [][]Match, players []Player) (float64, error) {
-	pausesBetweenMatches := []float64{}
-	for i := range players {
-		for j := i + 1; j < len(players); j++ {
-			match, err := createMatch(i, j)
-			if err != nil {
-				continue
-			}
-			roundsPlaying := getRoundIndizesOfMatch(schedule, match)
-			val := calcStdOfPauses(schedule, roundsPlaying)
-			pausesBetweenMatches = append(pausesBetweenMatches, val)
-		}
-	}
-	return stats.Sum(pausesBetweenMatches)
+func (s *Scorer) calcPauseMatch(schedule [][]Match, match Match) {
+	roundsPlaying := getRoundIndizesOfMatch(schedule, match)
+	s.matchesPauses[match] = calcStdOfPauses(schedule, roundsPlaying)
 }
 
 func calcStdOfPauses(schedule [][]Match, roundsPlaying []int) float64 {
@@ -111,4 +136,19 @@ func getPausesBetweenRounds(schedule [][]Match, roundsPlaying []int) []float64 {
 		pauses = append(pauses, float64(roundsPlaying[0]))                                  // pause at start
 	}
 	return pauses
+}
+
+func (s *Scorer) appendChangedPlayers(players ...int) {
+	for _, p := range players {
+		if !isInSlice(p, s.changedPlayerSinceCalculation) {
+			s.changedPlayerSinceCalculation = append(s.changedPlayerSinceCalculation, p)
+		}
+	}
+}
+
+func (s *Scorer) appendChangedMatches(match ...Match) {
+	s.changedMatchesSinceCalculation = append(s.changedMatchesSinceCalculation, match...)
+	for _, m := range match {
+		s.appendChangedPlayers(m.getPlayers()...)
+	}
 }

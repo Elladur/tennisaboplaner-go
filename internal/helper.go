@@ -24,3 +24,11 @@ func shuffle[T any](slice []T) []T {
 	}
 	return slice
 }
+
+func convertToSlice[K comparable, V any](mapping map[K]V) []V {
+	values := make([]V, 0, len(mapping))
+	for _, value := range mapping {
+		values = append(values, value)
+	}
+	return values
+}

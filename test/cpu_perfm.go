@@ -38,6 +38,4 @@ func main() {
 		optimizer.Optimize()
 		season.CreateSchedule()
 	}
-
-	fmt.Printf("Optimized Schedule and new Score is %.2f\n", internal.GetScore(season.Schedule, season.Players))
 }

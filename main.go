@@ -28,7 +28,7 @@ func main() {
 	}
 
 	optimizer := internal.Optimizer{Season: &season}
-	optimizer.Optimize()
+	score := optimizer.Optimize()
 
-	fmt.Printf("Optimized Schedule and new Score is %.2f\n", internal.GetScore(season.Schedule, season.Players))
+	fmt.Printf("Optimized Schedule and new Score is %.2f\n", score)
 }

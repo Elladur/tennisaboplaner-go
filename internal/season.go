@@ -18,6 +18,7 @@ type Season struct {
 	dates          []time.Time
 	fixedRounds    []int
 	Schedule       [][]Match
+	scorer         Scorer
 }
 
 type simpleTime struct {
@@ -77,6 +78,8 @@ func createSeason(players []Player, start time.Time, end time.Time, numberOfCour
 		dates:          dates,
 	}
 	season.CreateSchedule()
+	season.scorer.initialize(season.Schedule, season.Players)
+
 	return season
 }
 
@@ -101,6 +104,7 @@ func (s *Season) CreateSchedule() {
 			s.fixedRounds = append(s.fixedRounds, i)
 		}
 	}
+	s.scorer.initialize(s.Schedule, s.Players)
 }
 
 func (s *Season) createRound(date time.Time) ([]Match, bool) {
@@ -143,6 +147,7 @@ func (s *Season) changeMatch(roundIdx int, matchIdx int, newMatch Match) bool {
 	oldMatch := s.Schedule[roundIdx][matchIdx]
 	s.Schedule[roundIdx][matchIdx] = newMatch
 	if s.checkIfRoundIsValid(roundIdx) {
+		s.scorer.appendChangedMatches(oldMatch, newMatch)
 		return true
 	}
 	s.Schedule[roundIdx][matchIdx] = oldMatch
@@ -187,22 +192,28 @@ func (s *Season) swapPlayersOfRound(roundIdx int, player1 int, player2 int) bool
 			case m.player1 == player1:
 				match, _ := createMatch(player2, m.player2)
 				s.Schedule[roundIdx][i] = match
+				s.scorer.appendChangedMatches(m, match)
 			case m.player2 == player1:
 				match, _ := createMatch(player2, m.player1)
 				s.Schedule[roundIdx][i] = match
+				s.scorer.appendChangedMatches(m, match)
 			case m.player1 == player2:
 				match, _ := createMatch(player1, m.player2)
 				s.Schedule[roundIdx][i] = match
+				s.scorer.appendChangedMatches(m, match)
 			case m.player2 == player2:
 				match, _ := createMatch(player1, m.player1)
 				s.Schedule[roundIdx][i] = match
+				s.scorer.appendChangedMatches(m, match)
 			}
 		} else {
 			switch {
 			case m.player1 == player1:
 				s.Schedule[roundIdx][i] = createPartialMatch(player2)
+				s.scorer.appendChangedPlayers(player1, player2)
 			case m.player1 == player2:
 				s.Schedule[roundIdx][i] = createPartialMatch(player1)
+				s.scorer.appendChangedPlayers(player1, player2)
 			}
 		}
 	}
@@ -218,6 +229,7 @@ func (s *Season) swapMatches(round1 int, match1 int, round2 int, match2 int) boo
 	s.Schedule[round1][match1] = oldMatch2
 	s.Schedule[round2][match2] = oldMatch1
 	if s.checkIfRoundIsValid(round1) && s.checkIfRoundIsValid(round2) {
+		s.scorer.appendChangedMatches(oldMatch1, oldMatch2)
 		return true
 	}
 	s.Schedule[round1][match1] = oldMatch1
