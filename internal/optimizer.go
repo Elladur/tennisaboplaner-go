@@ -1,6 +1,6 @@
 package internal
 
-import "log"
+import log "github.com/sirupsen/logrus"
 
 // Optimizer is responsible for optimizing the schedule
 type Optimizer struct {
@@ -13,18 +13,21 @@ func (o *Optimizer) Optimize() {
 	swaps := 1
 	for swaps > 0 {
 		swaps = 0
-		log.Printf("Start a new round of optimization")
+		log.Debug("Start a new round of optimization")
 
-		log.Printf("Optimizing by swapping players")
+		log.Debug("Optimizing by swapping players")
 		swaps += o.optimizeBySwappingPlayers()
 
-		log.Println("Optimizing by swapping matches")
+		log.Debug("Optimizing by swapping matches")
 		swaps += o.optimizeBySwappingMatches()
 
-		log.Printf("Swaps: %d", swaps)
-		log.Printf("Current score: %.2f", GetScore(o.Season.Schedule, o.Season.Players))
+		log.WithFields(log.Fields{
+			"score": GetScore(o.Season.Schedule, o.Season.Players),
+			"swaps": swaps,
+		}).Info("Finished a round of optimization")
 	}
-	log.Printf("Optimization finished")
+
+	log.Info("Optimization finished")
 }
 
 func (o *Optimizer) optimizeBySwappingPlayers() int {
@@ -32,6 +35,7 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 	currentScore := GetScore(o.Season.Schedule, o.Season.Players)
 	var newScore float64
 
+	log.Debug("Start replacing matches")
 	for i, round := range o.Season.Schedule {
 		if isInSlice(i, o.Season.fixedRounds) {
 			continue
@@ -55,6 +59,12 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 						swaps++
 						currentScore = newScore
 						currentMatch = possibleMatch
+						log.WithFields(log.Fields{
+							"score":    currentScore,
+							"newMatch": currentMatch.String(&o.Season.Players),
+							"round":    i,
+							"match":    j,
+						}).Debug("Replaced a match")
 					} else {
 						o.Season.changeMatch(i, j, currentMatch)
 					}
@@ -62,9 +72,11 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 			}
 		}
 	}
+	log.Debug("finished replacing matches")
 
 	currentScore = GetScore(o.Season.Schedule, o.Season.Players)
 
+	log.Debug("Start switching scheduled player of existing round")
 	for i, round := range o.Season.Schedule {
 		if isInSlice(i, o.Season.fixedRounds) {
 			continue
@@ -81,6 +93,12 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 				if newScore < currentScore {
 					swaps++
 					currentScore = newScore
+					log.WithFields(log.Fields{
+						"score":   currentScore,
+						"round":   i,
+						"player1": p,
+						"player2": q,
+					}).Debug("Swapped players")
 					break
 				} else {
 					o.Season.swapPlayersOfRound(i, q, p)
@@ -88,6 +106,7 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 			}
 		}
 	}
+	log.Debug("Finished switching scheduled player of existing round")
 
 	return swaps
 }
@@ -96,6 +115,8 @@ func (o *Optimizer) optimizeBySwappingMatches() int {
 	swaps := 0
 	currentScore := GetScore(o.Season.Schedule, o.Season.Players)
 	indexCombinations := getIndexCombinations(o.Season.Schedule)
+
+	log.Debug("Finished swapping existing matches")
 	for _, combination := range indexCombinations {
 		roundIdx1 := combination[0]
 		matchIdx1 := combination[1]
@@ -112,10 +133,18 @@ func (o *Optimizer) optimizeBySwappingMatches() int {
 		if newScore < currentScore {
 			swaps++
 			currentScore = newScore
+			log.WithFields(log.Fields{
+				"score":  currentScore,
+				"round1": roundIdx1,
+				"match1": matchIdx1,
+				"round2": roundIdx2,
+				"match2": matchIdx2,
+			}).Debug("swapped matches")
 		} else {
 			o.Season.swapMatches(roundIdx1, matchIdx1, roundIdx2, matchIdx2)
 		}
 	}
+	log.Debug("Finished swapping existing matches")
 
 	return swaps
 }

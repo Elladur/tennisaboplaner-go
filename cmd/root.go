@@ -9,10 +9,12 @@ import (
 	"os"
 
 	"github.com/Elladur/tennisaboplaner-go/internal"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 var cfgFile string
+var logLevel string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -28,6 +30,15 @@ var rootCmd = &cobra.Command{
 	settings.json. For an example take look at 
 	https://github.com/Elladur/tennisaboplaner-go.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		switch logLevel {
+		case "info":
+			log.SetLevel(log.InfoLevel)
+		case "warn":
+			log.SetLevel(log.WarnLevel)
+		case "debug":
+			log.SetLevel(log.DebugLevel)
+		}
+
 		content, err := os.ReadFile(cfgFile)
 		if err != nil {
 			fmt.Println(err)
@@ -67,4 +78,5 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "settings.json", "path to config file")
+	rootCmd.PersistentFlags().StringVar(&logLevel, "level", "info", "set loglevel (possibilites: debug, info, warn)")
 }
