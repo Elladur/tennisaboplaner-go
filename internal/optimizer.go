@@ -39,7 +39,7 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 		for j, currentMatch := range round {
 			for p := range o.Season.Players {
 				for q := p + 1; q < len(o.Season.Players); q++ {
-					possibleMatch, err := createMatch(uint8(p), uint8(q))
+					possibleMatch, err := createMatch(p, q)
 					if err != nil {
 						continue
 					}

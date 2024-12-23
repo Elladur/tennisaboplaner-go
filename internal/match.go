@@ -9,8 +9,8 @@ import (
 // Match represents a match between two players
 // player1 is always the player with the lower ID
 type Match struct {
-	player1      uint8
-	player2      uint8
+	player1      int
+	player2      int
 	isPlayer2Set bool
 }
 
@@ -35,7 +35,7 @@ func (m *Match) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	if match.IsPlayer2Set {
-		val, err := createMatch(uint8(match.Player1), uint8(match.Player2))
+		val, err := createMatch(match.Player1, match.Player2)
 		if err != nil {
 			return err
 		}
@@ -44,7 +44,7 @@ func (m *Match) UnmarshalJSON(data []byte) error {
 		m.isPlayer2Set = true
 		return nil
 	}
-	val := createPartialMatch(uint8(match.Player1))
+	val := createPartialMatch(match.Player1)
 	m.player1 = val.player1
 	m.player2 = val.player2
 	m.isPlayer2Set = true
@@ -52,7 +52,7 @@ func (m *Match) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func createMatch(player1 uint8, player2 uint8) (Match, error) {
+func createMatch(player1 int, player2 int) (Match, error) {
 	if player1 == player2 {
 		return Match{}, errors.New("same player is not allowed")
 	}
@@ -62,15 +62,15 @@ func createMatch(player1 uint8, player2 uint8) (Match, error) {
 	return Match{player1: player2, player2: player1, isPlayer2Set: true}, nil
 }
 
-func createPartialMatch(player1 uint8) Match {
+func createPartialMatch(player1 int) Match {
 	return Match{player1: player1, isPlayer2Set: false}
 }
 
-func (m Match) getPlayers() []uint8 {
+func (m Match) getPlayers() []int {
 	if m.isPlayer2Set {
-		return []uint8{m.player1, m.player2}
+		return []int{m.player1, m.player2}
 	}
-	return []uint8{m.player1}
+	return []int{m.player1}
 }
 
 func (m Match) String(players *[]Player) string {
@@ -92,7 +92,7 @@ func canMatchBeAdded(matches []Match, match Match) bool {
 	return true
 }
 
-func (m *Match) replacePlayer(oldPlayer uint8, newPlayer uint8) error {
+func (m *Match) replacePlayer(oldPlayer int, newPlayer int) error {
 	if isInSlice(newPlayer, m.getPlayers()) {
 		return errors.New("new player is already in the match")
 	}

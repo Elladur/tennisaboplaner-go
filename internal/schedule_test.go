@@ -7,7 +7,7 @@ import (
 )
 
 func TestRoundIndizesOfPlayer(t *testing.T) {
-	player := uint8(1)
+	player := 1
 	schedule := [][]Match{
 		{
 			{player1: 1, isPlayer2Set: true, player2: 2},
@@ -27,12 +27,12 @@ func TestRoundIndizesOfPlayer(t *testing.T) {
 	result := getRoundIndizesOfPlayer(schedule, player)
 	assert.Equal(t, expected, result)
 
-	result = getRoundIndizesOfPlayer(schedule, uint8(10))
+	result = getRoundIndizesOfPlayer(schedule, 10)
 	assert.Empty(t, result)
 }
 
 func TestGetMatchesCountOfPlayer(t *testing.T) {
-	player := uint8(1)
+	player := 1
 	schedule := [][]Match{
 		{
 			{player1: 1, isPlayer2Set: true, player2: 2},
@@ -51,7 +51,7 @@ func TestGetMatchesCountOfPlayer(t *testing.T) {
 	result := getMatchesCountOfPlayer(schedule, player)
 	assert.Equal(t, 2, result)
 
-	result = getMatchesCountOfPlayer(schedule, uint8(10))
+	result = getMatchesCountOfPlayer(schedule, 10)
 	assert.Equal(t, 0, result)
 }
 

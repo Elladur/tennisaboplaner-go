@@ -8,8 +8,8 @@ import (
 
 func TestCreateMatch(t *testing.T) {
 	tests := []struct {
-		player1   uint8
-		player2   uint8
+		player1   int
+		player2   int
 		expectErr bool
 		expected  Match
 	}{
@@ -30,7 +30,7 @@ func TestCreateMatch(t *testing.T) {
 }
 
 func TestCreatePartialMatch(t *testing.T) {
-	player1 := uint8(1)
+	player1 := 1
 	match := createPartialMatch(player1)
 	assert.Equal(t, player1, match.player1, "Player1 should be set correctly")
 	assert.False(t, match.isPlayer2Set, "IsPlayer2Set should be false")
@@ -39,11 +39,11 @@ func TestCreatePartialMatch(t *testing.T) {
 func TestGetPlayers(t *testing.T) {
 	match := Match{player1: 1, player2: 2, isPlayer2Set: true}
 	players := match.getPlayers()
-	assert.Equal(t, []uint8{1, 2}, players, "Players should be [1, 2]")
+	assert.Equal(t, []int{1, 2}, players, "Players should be [1, 2]")
 
 	partialMatch := Match{player1: 1, isPlayer2Set: false}
 	players = partialMatch.getPlayers()
-	assert.Equal(t, []uint8{1}, players, "Players should be [1]")
+	assert.Equal(t, []int{1}, players, "Players should be [1]")
 }
 
 func TestCanMatchBeAdded(t *testing.T) {
@@ -73,11 +73,11 @@ func TestReplacePlayer(t *testing.T) {
 
 	err := match.replacePlayer(1, 3)
 	assert.NoError(t, err, "expected no error")
-	assert.Equal(t, uint8(3), match.player1, "Player1 should be 3")
+	assert.Equal(t, 3, match.player1, "Player1 should be 3")
 
 	err = match.replacePlayer(2, 4)
 	assert.NoError(t, err, "expected no error")
-	assert.Equal(t, uint8(4), match.player2, "Player2 should be 4")
+	assert.Equal(t, 4, match.player2, "Player2 should be 4")
 
 	err = match.replacePlayer(1, 4)
 	assert.Equal(t, Match{3, 4, true}, match, "expected match to be {3, 4, true}")

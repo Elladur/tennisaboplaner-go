@@ -21,8 +21,8 @@ type Season struct {
 }
 
 type simpleTime struct {
-	Hour   uint8
-	Minute uint8
+	Hour   int
+	Minute int
 }
 
 // SeasonSettings are necessary to create a Season
@@ -58,8 +58,8 @@ func CreateSeasonFromSettings(settings SeasonSettings) (Season, error) {
 }
 
 func createSeason(players []Player, start time.Time, end time.Time, numberOfCourts int, calendarTitle string, overallCosts float64, excludedDates []time.Time) Season {
-	startTime := simpleTime{uint8(start.Hour()), uint8(start.Minute())}
-	endTime := simpleTime{uint8(end.Hour()), uint8(end.Minute())}
+	startTime := simpleTime{start.Hour(), start.Minute()}
+	endTime := simpleTime{end.Hour(), end.Minute()}
 	start = start.Truncate(24 * time.Hour)
 	end = end.Truncate(24 * time.Hour)
 	dates := generateDates(start, end, excludedDates)
@@ -110,13 +110,13 @@ func (s *Season) createRound(date time.Time) ([]Match, bool) {
 	for len(playerIdx) > 0 && len(matches) < s.NumberOfCourts {
 		switch {
 		case len(playerIdx) >= 2:
-			var p, q uint8
+			var p, q int
 			playerIdx, p = pop(playerIdx)
 			playerIdx, q = pop(playerIdx)
 			match, _ := createMatch(p, q)
 			matches = append(matches, match)
 		case len(playerIdx) == 1:
-			var p uint8
+			var p int
 			playerIdx, p = pop(playerIdx)
 			match := createPartialMatch(p)
 			matches = append(matches, match)
@@ -126,11 +126,11 @@ func (s *Season) createRound(date time.Time) ([]Match, bool) {
 	return matches, len(getPlayersOfRound(matches)) < s.NumberOfCourts*2
 }
 
-func (s Season) getPossiblePlayers(date time.Time) []uint8 {
-	var players []uint8
+func (s Season) getPossiblePlayers(date time.Time) []int {
+	var players []int
 	for i, p := range s.Players {
 		if !isInSlice(date, p.CannotPlay) {
-			players = append(players, uint8(i))
+			players = append(players, i)
 		}
 	}
 	return players
@@ -172,7 +172,7 @@ func (s Season) checkIfScheduleIsValid() bool {
 	return true
 }
 
-func (s *Season) swapPlayersOfRound(roundIdx int, player1 uint8, player2 uint8) bool {
+func (s *Season) swapPlayersOfRound(roundIdx int, player1 int, player2 int) bool {
 	players := getPlayersOfRound(s.Schedule[roundIdx])
 	if !isInSlice(player1, players) || !isInSlice(player2, players) {
 		return false

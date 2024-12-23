@@ -91,7 +91,7 @@ func TestGetPossiblePlayers(t *testing.T) {
 	season := setupStaticTestSeason()
 	date := season.dates[0]
 	players := season.getPossiblePlayers(date)
-	assert.Equal(t, []uint8{0, 1, 2, 3}, players)
+	assert.Equal(t, []int{0, 1, 2, 3}, players)
 
 	date2 := season.dates[1]
 	players = season.getPossiblePlayers(date2)
@@ -120,27 +120,27 @@ func TestSwapPlayersOfRound(t *testing.T) {
 	season := setupStaticTestSeason()
 	success := season.swapPlayersOfRound(0, 0, 3)
 	assert.True(t, success)
-	assert.Equal(t, uint8(2), season.Schedule[0][0].player1)
-	assert.Equal(t, uint8(3), season.Schedule[0][0].player2)
-	assert.Equal(t, uint8(0), season.Schedule[0][1].player1)
-	assert.Equal(t, uint8(1), season.Schedule[0][1].player2)
+	assert.Equal(t, 2, season.Schedule[0][0].player1)
+	assert.Equal(t, 3, season.Schedule[0][0].player2)
+	assert.Equal(t, 0, season.Schedule[0][1].player1)
+	assert.Equal(t, 1, season.Schedule[0][1].player2)
 
 	success = season.swapPlayersOfRound(0, 3, 2)
 	assert.False(t, success)
 	// check nothing changed
-	assert.Equal(t, uint8(2), season.Schedule[0][0].player1)
-	assert.Equal(t, uint8(3), season.Schedule[0][0].player2)
-	assert.Equal(t, uint8(0), season.Schedule[0][1].player1)
-	assert.Equal(t, uint8(1), season.Schedule[0][1].player2)
+	assert.Equal(t, 2, season.Schedule[0][0].player1)
+	assert.Equal(t, 3, season.Schedule[0][0].player2)
+	assert.Equal(t, 0, season.Schedule[0][1].player1)
+	assert.Equal(t, 1, season.Schedule[0][1].player2)
 
 	// Test swapping players not in the round
 	success = season.swapPlayersOfRound(0, 2, 4)
 	assert.False(t, success)
 	// check nothing changed
-	assert.Equal(t, uint8(2), season.Schedule[0][0].player1)
-	assert.Equal(t, uint8(3), season.Schedule[0][0].player2)
-	assert.Equal(t, uint8(0), season.Schedule[0][1].player1)
-	assert.Equal(t, uint8(1), season.Schedule[0][1].player2)
+	assert.Equal(t, 2, season.Schedule[0][0].player1)
+	assert.Equal(t, 3, season.Schedule[0][0].player2)
+	assert.Equal(t, 0, season.Schedule[0][1].player1)
+	assert.Equal(t, 1, season.Schedule[0][1].player2)
 }
 
 func TestSwapMatches(t *testing.T) {

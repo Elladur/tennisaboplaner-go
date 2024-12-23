@@ -10,19 +10,19 @@ func TestGetPlayersOfRound(t *testing.T) {
 	tests := []struct {
 		name     string
 		round    []Match
-		expected []uint8
+		expected []int
 	}{
 		{
 			name:     "No matches",
 			round:    []Match{},
-			expected: []uint8{},
+			expected: []int{},
 		},
 		{
 			name: "Single match",
 			round: []Match{
 				{1, 2, true},
 			},
-			expected: []uint8{1, 2},
+			expected: []int{1, 2},
 		},
 		{
 			name: "Multiple matches",
@@ -30,7 +30,7 @@ func TestGetPlayersOfRound(t *testing.T) {
 				{1, 2, true},
 				{3, 4, true},
 			},
-			expected: []uint8{1, 2, 3, 4},
+			expected: []int{1, 2, 3, 4},
 		},
 		{
 			name: "Overlapping players",
@@ -38,7 +38,7 @@ func TestGetPlayersOfRound(t *testing.T) {
 				{1, 2, true},
 				{2, 3, true},
 			},
-			expected: []uint8{1, 2, 3},
+			expected: []int{1, 2, 3},
 		},
 	}
 

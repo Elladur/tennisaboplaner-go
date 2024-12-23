@@ -1,6 +1,6 @@
 package internal
 
-func getRoundIndizesOfPlayer(schedule [][]Match, player uint8) []int {
+func getRoundIndizesOfPlayer(schedule [][]Match, player int) []int {
 	var indizes []int
 	for i, round := range schedule {
 		for _, match := range round {
@@ -12,7 +12,7 @@ func getRoundIndizesOfPlayer(schedule [][]Match, player uint8) []int {
 	return indizes
 }
 
-func getMatchesCountOfPlayer(schedule [][]Match, player uint8) int {
+func getMatchesCountOfPlayer(schedule [][]Match, player int) int {
 	num := 0
 	for _, round := range schedule {
 		for _, match := range round {
