@@ -2,6 +2,7 @@
     "CalendarTitle": "Tennisabo",
     "Start": "2022-09-01 19:00:00",
     "End": "2023-05-01 21:00:00",
+    "Location": "Europe/Berlin",
     "ExcludedDates": ["2022-09-22"],
     "OverallCost": 1000,
     "NumberOfCourts": 2,

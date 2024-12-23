@@ -25,3 +25,4 @@ go.work.sum
 .env
 tennisaboplaner-go
 cpu.prof
+output/

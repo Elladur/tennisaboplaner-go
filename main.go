@@ -29,6 +29,10 @@ func main() {
 
 	optimizer := internal.Optimizer{Season: &season}
 	optimizer.Optimize()
-
 	fmt.Printf("Optimized Schedule and new Score is %.2f\n", internal.GetScore(season.Schedule, season.Players))
+
+	err = season.Export("output")
+	if err != nil {
+		fmt.Println(err)
+	}
 }

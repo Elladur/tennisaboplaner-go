@@ -30,6 +30,7 @@ type SeasonSettings struct {
 	Players        []Player
 	Start          string
 	End            string
+	Location       string
 	ExcludedDates  []string
 	NumberOfCourts int
 	OverallCost    float64
@@ -38,11 +39,16 @@ type SeasonSettings struct {
 
 // CreateSeasonFromSettings creates a Season from the given settings
 func CreateSeasonFromSettings(settings SeasonSettings) (Season, error) {
-	start, err := time.Parse(time.DateTime, settings.Start)
+	location, err := time.LoadLocation(settings.Location)
 	if err != nil {
 		return Season{}, err
 	}
-	end, err := time.Parse(time.DateTime, settings.End)
+
+	start, err := time.ParseInLocation(time.DateTime, settings.Start, location)
+	if err != nil {
+		return Season{}, err
+	}
+	end, err := time.ParseInLocation(time.DateTime, settings.End, location)
 	if err != nil {
 		return Season{}, err
 	}
