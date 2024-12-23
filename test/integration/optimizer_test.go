@@ -8,10 +8,12 @@ import (
 	"time"
 
 	"github.com/Elladur/tennisaboplaner-go/internal"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestPerformance(t *testing.T) {
+	log.SetLevel(log.WarnLevel) // to make it faster and ignore logs
 	content, err := os.ReadFile("input/performance.json")
 	if err != nil {
 		t.Error("Could not read settings.json")

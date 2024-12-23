@@ -100,8 +100,8 @@ func generateDates(start time.Time, end time.Time, excludedDates []time.Time) []
 // This is done with some randomness, such that optimization has a different starting point.
 func (s *Season) CreateSchedule() {
 	s.Schedule = [][]Match{}
-	for i, d := range s.dates {
-		r, partial := s.createRound(d)
+	for i := range s.dates {
+		r, partial := s.createRound(i)
 		s.Schedule = append(s.Schedule, r)
 		if partial {
 			s.fixedRounds = append(s.fixedRounds, i)
@@ -109,9 +109,9 @@ func (s *Season) CreateSchedule() {
 	}
 }
 
-func (s *Season) createRound(date time.Time) ([]Match, bool) {
+func (s *Season) createRound(index int) ([]Match, bool) {
 	var matches []Match
-	playerIdx := shuffle(s.getPossiblePlayers(date))
+	playerIdx := shuffle(s.getPossiblePlayers(index))
 
 	for len(playerIdx) > 0 && len(matches) < s.NumberOfCourts {
 		switch {
@@ -132,14 +132,15 @@ func (s *Season) createRound(date time.Time) ([]Match, bool) {
 	return matches, len(getPlayersOfRound(matches)) < s.NumberOfCourts*2
 }
 
-func (s Season) getPossiblePlayers(date time.Time) []int {
-	var players []int
+func (s *Season) getPossiblePlayers(index int) []int {
+	date := s.dates[index]
+	possiblePlayers := make([]int, 0, len(s.Players))
 	for i, p := range s.Players {
 		if !isInSlice(date, p.CannotPlay) {
-			players = append(players, i)
+			possiblePlayers = append(possiblePlayers, i)
 		}
 	}
-	return players
+	return possiblePlayers
 }
 
 func (s *Season) changeMatch(roundIdx int, matchIdx int, newMatch Match) bool {
@@ -229,4 +230,17 @@ func (s *Season) swapMatches(round1 int, match1 int, round2 int, match2 int) boo
 	s.Schedule[round1][match1] = oldMatch1
 	s.Schedule[round2][match2] = oldMatch2
 	return false
+}
+
+func (s *Season) replaceRound(index int, round []Match) ([]Match, bool) {
+	if isInSlice(index, s.fixedRounds) {
+		return nil, false
+	}
+	oldRound := s.Schedule[index]
+	s.Schedule[index] = round
+	if s.checkIfRoundIsValid(index) {
+		return oldRound, true
+	}
+	s.Schedule[index] = oldRound
+	return nil, false
 }

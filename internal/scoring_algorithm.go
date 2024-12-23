@@ -98,7 +98,7 @@ func calcStdOfPauses(schedule [][]Match, roundsPlaying []int) float64 {
 }
 
 func getPausesBetweenRounds(schedule [][]Match, roundsPlaying []int) []float64 {
-	pauses := make([]float64, 0, 8)
+	pauses := make([]float64, 0, 16)
 	if len(roundsPlaying) > 1 {
 		for j := 0; j < len(roundsPlaying)-1; j++ {
 			pauses = append(pauses, float64(roundsPlaying[j+1]-roundsPlaying[j]))

@@ -75,26 +75,23 @@ func TestCreateSchedule(t *testing.T) {
 
 func TestCreateRound(t *testing.T) {
 	season := setupTestSeason()
-	date := season.dates[0]
-	matches, partial := season.createRound(date)
+	matches, partial := season.createRound(0)
 	assert.NotEmpty(t, matches)
 	assert.False(t, partial)
 
 	// Test with insufficient players
 	season.Players = []Player{{Name: "Player1"}}
-	matches, partial = season.createRound(date)
+	matches, partial = season.createRound(0)
 	assert.NotEmpty(t, matches)
 	assert.True(t, partial)
 }
 
 func TestGetPossiblePlayers(t *testing.T) {
 	season := setupStaticTestSeason()
-	date := season.dates[0]
-	players := season.getPossiblePlayers(date)
+	players := season.getPossiblePlayers(0)
 	assert.Equal(t, []int{0, 1, 2, 3}, players)
 
-	date2 := season.dates[1]
-	players = season.getPossiblePlayers(date2)
+	players = season.getPossiblePlayers(1)
 	assert.Equal(t, 5, len(players))
 }
 
@@ -189,6 +186,38 @@ func TestCheckIfScheduleIsValid(t *testing.T) {
 	invalidRound := []Match{{player1: 0, player2: 2, isPlayer2Set: true}, {player1: 0, player2: 2, isPlayer2Set: true}}
 	season.Schedule[5] = invalidRound
 	assert.False(t, season.checkIfScheduleIsValid())
+}
+
+func TestReplaceRound(t *testing.T) {
+	season := setupStaticTestSeason()
+	oldRound := season.Schedule[0]
+	newRound := []Match{
+		{player1: 0, player2: 1, isPlayer2Set: true},
+		{player1: 2, player2: 3, isPlayer2Set: true},
+	}
+
+	assert.NotEqual(t, oldRound, newRound)
+	resultMatch, swapped := season.replaceRound(0, newRound)
+	assert.True(t, swapped)
+	assert.NotEqual(t, oldRound, season.Schedule[0])
+	assert.Equal(t, newRound, season.Schedule[0])
+	assert.Equal(t, oldRound, resultMatch)
+
+	notValidRound := []Match{
+		{player1: 0, player2: 1, isPlayer2Set: true},
+		{player1: 0, player2: 1, isPlayer2Set: true},
+	}
+	oldRound = season.Schedule[0]
+
+	resultMatch, swapped = season.replaceRound(0, notValidRound)
+	assert.False(t, swapped)
+	assert.NotEqual(t, resultMatch, oldRound)
+	assert.Equal(t, oldRound, season.Schedule[0])
+
+	season.fixedRounds = append(season.fixedRounds, 0)
+	resultMatch, swapped = season.replaceRound(0, oldRound)
+	assert.False(t, swapped)
+	assert.Equal(t, []Match(nil), resultMatch)
 }
 
 func setupTestSeason() Season {
