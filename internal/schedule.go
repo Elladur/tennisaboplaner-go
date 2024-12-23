@@ -1,7 +1,7 @@
 package internal
 
 func getRoundIndizesOfPlayer(schedule [][]Match, player int) []int {
-	var indizes []int
+	indizes := make([]int, 0, len(schedule))
 	for i, round := range schedule {
 		for _, match := range round {
 			if match.player1 == player || (match.isPlayer2Set && match.player2 == player) {
