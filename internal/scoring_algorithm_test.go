@@ -63,20 +63,20 @@ func getBalancedSchedule() [][]Match {
 }
 
 func helperTestAssertion(t *testing.T, betterSchedule [][]Match, worseSchedule [][]Match, players []Player) {
-	valBetter, _ := getStdOfPlayerTimesPlaying(betterSchedule, players)
-	valWorse, _ := getStdOfPlayerTimesPlaying(worseSchedule, players)
+	valBetter := getStdOfPlayerTimesPlaying(betterSchedule, players, float64(len(betterSchedule)))
+	valWorse := getStdOfPlayerTimesPlaying(worseSchedule, players, float64(len(worseSchedule)))
 	assert.LessOrEqual(t, valBetter, valWorse)
 
-	valBetter, _ = getStdOfPossibleMatches(betterSchedule, players)
-	valWorse, _ = getStdOfPossibleMatches(worseSchedule, players)
+	valBetter = getStdOfPossibleMatches(betterSchedule, players, float64(len(betterSchedule)))
+	valWorse = getStdOfPossibleMatches(worseSchedule, players, float64(len(worseSchedule)))
 	assert.LessOrEqual(t, valBetter, valWorse)
 
-	valBetter, _ = getStdOfPauseBetweenPlaying(betterSchedule, players)
-	valWorse, _ = getStdOfPauseBetweenPlaying(worseSchedule, players)
+	valBetter = getStdOfPauseBetweenPlaying(betterSchedule, players)
+	valWorse = getStdOfPauseBetweenPlaying(worseSchedule, players)
 	assert.LessOrEqual(t, valBetter, valWorse)
 
-	valBetter, _ = getStdOfPauseBetweenMatches(betterSchedule, players)
-	valWorse, _ = getStdOfPauseBetweenMatches(worseSchedule, players)
+	valBetter = getStdOfPauseBetweenMatches(betterSchedule, players)
+	valWorse = getStdOfPauseBetweenMatches(worseSchedule, players)
 	assert.LessOrEqual(t, valBetter, valWorse)
 }
 
@@ -101,20 +101,20 @@ func TestBalancedBetterThanEven(t *testing.T) {
 	betterSchedule := getBalancedSchedule()
 	worseSchedule := getEvenSchedule()
 
-	valBetter, _ := getStdOfPlayerTimesPlaying(betterSchedule, players)
-	valWorse, _ := getStdOfPlayerTimesPlaying(worseSchedule, players)
+	valBetter := getStdOfPlayerTimesPlaying(betterSchedule, players, float64(len(betterSchedule)))
+	valWorse := getStdOfPlayerTimesPlaying(worseSchedule, players, float64(len(worseSchedule)))
 	assert.LessOrEqual(t, valBetter, valWorse)
 
-	valBetter, _ = getStdOfPossibleMatches(betterSchedule, players)
-	valWorse, _ = getStdOfPossibleMatches(worseSchedule, players)
+	valBetter = getStdOfPossibleMatches(betterSchedule, players, float64(len(betterSchedule)))
+	valWorse = getStdOfPossibleMatches(worseSchedule, players, float64(len(worseSchedule)))
 	assert.LessOrEqual(t, valBetter, valWorse)
 
-	valBetter, _ = getStdOfPauseBetweenPlaying(betterSchedule, players)
-	valWorse, _ = getStdOfPauseBetweenPlaying(worseSchedule, players)
+	valBetter = getStdOfPauseBetweenPlaying(betterSchedule, players)
+	valWorse = getStdOfPauseBetweenPlaying(worseSchedule, players)
 	assert.LessOrEqual(t, valBetter, valWorse)
 
-	valBetter, _ = getStdOfPauseBetweenMatches(betterSchedule, players)
-	valWorse, _ = getStdOfPauseBetweenMatches(worseSchedule, players)
+	valBetter = getStdOfPauseBetweenMatches(betterSchedule, players)
+	valWorse = getStdOfPauseBetweenMatches(worseSchedule, players)
 	assert.GreaterOrEqual(t, valBetter, valWorse)
 
 	valBetter = GetScore(betterSchedule, players)

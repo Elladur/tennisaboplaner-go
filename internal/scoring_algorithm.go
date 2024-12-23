@@ -9,45 +9,29 @@ import (
 // GetScore gives the value which was used to optimize the schedule
 func GetScore(schedule [][]Match, players []Player) float64 {
 	numberRounds := float64(len(schedule))
-	var score float64
 
-	val1, err := getStdOfPlayerTimesPlaying(schedule, players)
-	if err != nil {
-		return math.MaxFloat64
-	}
-	score += val1 * numberRounds
+	val1 := getStdOfPlayerTimesPlaying(schedule, players, numberRounds)
+	val2 := getStdOfPossibleMatches(schedule, players, numberRounds)
+	val3 := getStdOfPauseBetweenPlaying(schedule, players)
+	val4 := getStdOfPauseBetweenMatches(schedule, players)
 
-	val2, err := getStdOfPossibleMatches(schedule, players)
-	if err != nil {
-		return math.MaxFloat64
-	}
-	score += val2 * numberRounds
-
-	val3, err := getStdOfPauseBetweenPlaying(schedule, players)
-	if err != nil {
-		return math.MaxFloat64
-	}
-	score += val3
-
-	val4, err := getStdOfPauseBetweenMatches(schedule, players)
-	if err != nil {
-		return math.MaxFloat64
-	}
-	score += val4
-
-	return score
+	return val1 + val2 + val3 + val4
 }
 
-func getStdOfPlayerTimesPlaying(schedule [][]Match, players []Player) (float64, error) {
+func getStdOfPlayerTimesPlaying(schedule [][]Match, players []Player, numberRounds float64) float64 {
 	var weightedTimesPlayer []float64
 	for i, p := range players {
 		val := float64(getMatchesCountOfPlayer(schedule, i)) / p.Weight
 		weightedTimesPlayer = append(weightedTimesPlayer, val)
 	}
-	return stats.StandardDeviation(weightedTimesPlayer)
+	val, err := stats.StandardDeviation(weightedTimesPlayer)
+	if err != nil {
+		return math.MaxFloat64
+	}
+	return val * numberRounds
 }
 
-func getStdOfPossibleMatches(schedule [][]Match, players []Player) (float64, error) {
+func getStdOfPossibleMatches(schedule [][]Match, players []Player, numberRounds float64) float64 {
 	var weightedPossibleMatches []float64
 	for i := range players {
 		for j := i + 1; j < len(players); j++ {
@@ -60,20 +44,28 @@ func getStdOfPossibleMatches(schedule [][]Match, players []Player) (float64, err
 			weightedPossibleMatches = append(weightedPossibleMatches, val)
 		}
 	}
-	return stats.StandardDeviation(weightedPossibleMatches)
+	val, err := stats.StandardDeviation(weightedPossibleMatches)
+	if err != nil {
+		return math.MaxFloat64
+	}
+	return val * numberRounds
 }
 
-func getStdOfPauseBetweenPlaying(schedule [][]Match, players []Player) (float64, error) {
+func getStdOfPauseBetweenPlaying(schedule [][]Match, players []Player) float64 {
 	pausesBetweenPlaying := []float64{}
 	for i := range players {
 		roundsPlaying := getRoundIndizesOfPlayer(schedule, i)
 		val := calcStdOfPauses(schedule, roundsPlaying)
 		pausesBetweenPlaying = append(pausesBetweenPlaying, val)
 	}
-	return stats.Sum(pausesBetweenPlaying)
+	val, err := stats.Sum(pausesBetweenPlaying)
+	if err != nil {
+		return math.MaxFloat64
+	}
+	return val
 }
 
-func getStdOfPauseBetweenMatches(schedule [][]Match, players []Player) (float64, error) {
+func getStdOfPauseBetweenMatches(schedule [][]Match, players []Player) float64 {
 	pausesBetweenMatches := []float64{}
 	for i := range players {
 		for j := i + 1; j < len(players); j++ {
@@ -86,7 +78,11 @@ func getStdOfPauseBetweenMatches(schedule [][]Match, players []Player) (float64,
 			pausesBetweenMatches = append(pausesBetweenMatches, val)
 		}
 	}
-	return stats.Sum(pausesBetweenMatches)
+	val, err := stats.Sum(pausesBetweenMatches)
+	if err != nil {
+		return math.MaxFloat64
+	}
+	return val
 }
 
 func calcStdOfPauses(schedule [][]Match, roundsPlaying []int) float64 {
