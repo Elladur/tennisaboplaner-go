@@ -15,7 +15,7 @@ func TestGetPlayersOfRound(t *testing.T) {
 		{
 			name:     "No matches",
 			round:    []Match{},
-			expected: []uint8(nil),
+			expected: []uint8{},
 		},
 		{
 			name: "Single match",

@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetMatchIndizesOfPlayer(t *testing.T) {
+func TestRoundIndizesOfPlayer(t *testing.T) {
 	player := uint8(1)
 	schedule := [][]Match{
 		{
@@ -14,7 +14,7 @@ func TestGetMatchIndizesOfPlayer(t *testing.T) {
 			{player1: 3, isPlayer2Set: true, player2: 4},
 		},
 		{
-			{player1: 5, isPlayer2Set: true, player2: 1},
+			{player1: 5, isPlayer2Set: true, player2: 3},
 			{player1: 2, isPlayer2Set: false},
 		},
 		{
@@ -23,12 +23,39 @@ func TestGetMatchIndizesOfPlayer(t *testing.T) {
 		},
 	}
 
-	expected := [][2]int{{0, 0}, {1, 0}, {2, 1}}
-	result := getMatchIndizesOfPlayer(schedule, player)
+	expected := []int{0, 2}
+	result := getRoundIndizesOfPlayer(schedule, player)
 	assert.Equal(t, expected, result)
+
+	result = getRoundIndizesOfPlayer(schedule, uint8(10))
+	assert.Empty(t, result)
 }
 
-func TestGetMatchIndizesOfMatch(t *testing.T) {
+func TestGetMatchesCountOfPlayer(t *testing.T) {
+	player := uint8(1)
+	schedule := [][]Match{
+		{
+			{player1: 1, isPlayer2Set: true, player2: 2},
+			{player1: 3, isPlayer2Set: true, player2: 4},
+		},
+		{
+			{player1: 5, isPlayer2Set: true, player2: 3},
+			{player1: 2, isPlayer2Set: false},
+		},
+		{
+			{player1: 5, isPlayer2Set: true, player2: 3},
+			{player1: 1, isPlayer2Set: false},
+		},
+	}
+
+	result := getMatchesCountOfPlayer(schedule, player)
+	assert.Equal(t, 2, result)
+
+	result = getMatchesCountOfPlayer(schedule, uint8(10))
+	assert.Equal(t, 0, result)
+}
+
+func TestGetRoundIndizesOfMatch(t *testing.T) {
 	match := Match{player1: 1, isPlayer2Set: true, player2: 2}
 	schedule := [][]Match{
 		{
@@ -37,29 +64,42 @@ func TestGetMatchIndizesOfMatch(t *testing.T) {
 		},
 		{
 			{player1: 5, isPlayer2Set: true, player2: 1},
+			{player1: 1, isPlayer2Set: true, player2: 3},
+		},
+		{
+			{player1: 5, isPlayer2Set: true, player2: 1},
 			{player1: 1, isPlayer2Set: true, player2: 2},
 		},
 	}
 
-	expected := [][2]int{{0, 0}, {1, 1}}
-	result := getMatchIndizesOfMatch(schedule, match)
+	expected := []int{0, 2}
+	result := getRoundIndizesOfMatch(schedule, match)
 	assert.Equal(t, expected, result)
+
+	result = getRoundIndizesOfMatch(schedule, Match{player1: 10})
+	assert.Empty(t, result)
 }
 
-func TestGetMatchIndizesOfPartialMatch(t *testing.T) {
-	match := Match{player1: 1, isPlayer2Set: false}
+func TestGetCountMatchInSchedule(t *testing.T) {
+	match := Match{player1: 1, isPlayer2Set: true, player2: 2}
 	schedule := [][]Match{
 		{
-			{player1: 1, isPlayer2Set: false},
+			{player1: 1, isPlayer2Set: true, player2: 2},
 			{player1: 3, isPlayer2Set: true, player2: 4},
 		},
 		{
 			{player1: 5, isPlayer2Set: true, player2: 1},
-			{player1: 1, isPlayer2Set: false},
+			{player1: 1, isPlayer2Set: true, player2: 3},
+		},
+		{
+			{player1: 5, isPlayer2Set: true, player2: 1},
+			{player1: 1, isPlayer2Set: true, player2: 2},
 		},
 	}
 
-	expected := [][2]int{{0, 0}, {1, 1}}
-	result := getMatchIndizesOfMatch(schedule, match)
-	assert.Equal(t, expected, result)
+	result := getCountOfMatchInSchedule(schedule, match)
+	assert.Equal(t, 2, result)
+
+	result = getCountOfMatchInSchedule(schedule, Match{player1: 10})
+	assert.Empty(t, 0, result)
 }
