@@ -15,6 +15,7 @@ import (
 
 var cfgFile string
 var logLevel string
+var outputDirectory string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -60,7 +61,13 @@ var rootCmd = &cobra.Command{
 		optimizer.Optimize()
 		fmt.Printf("Optimized Schedule and new Score is %.2f\n", internal.GetScore(season.Schedule, season.Players))
 
-		err = season.Export("output")
+		_, err = os.Stat(outputDirectory)
+		if err != nil {
+			if err2 := os.MkdirAll(outputDirectory, 0777); err2 != nil {
+				log.Fatal(err)
+			}
+		}
+		err = season.Export(outputDirectory)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -79,4 +86,5 @@ func Execute() {
 func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "settings.json", "path to config file")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "level", "info", "set loglevel (possibilites: debug, info, warn)")
+	rootCmd.PersistentFlags().StringVar(&outputDirectory, "outDir", "output", "directory to which the files are exported")
 }
