@@ -16,6 +16,7 @@ import (
 var cfgFile string
 var logLevel string
 var outputDirectory string
+var executionTimes int
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -31,6 +32,7 @@ var rootCmd = &cobra.Command{
 	settings.json. For an example take look at 
 	https://github.com/Elladur/tennisaboplaner-go.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// loglevel switch
 		switch logLevel {
 		case "info":
 			log.SetLevel(log.InfoLevel)
@@ -40,6 +42,7 @@ var rootCmd = &cobra.Command{
 			log.SetLevel(log.DebugLevel)
 		}
 
+		// settings param
 		content, err := os.ReadFile(cfgFile)
 		if err != nil {
 			fmt.Println(err)
@@ -51,26 +54,15 @@ var rootCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		season, err := internal.CreateSeasonFromSettings(settings)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		optimizer := internal.Optimizer{Season: &season}
-		optimizer.Optimize()
-		fmt.Printf("Optimized Schedule and new Score is %.2f\n", internal.GetScore(season.Schedule, season.Players))
-
+		// output directory param
 		_, err = os.Stat(outputDirectory)
 		if err != nil {
 			if err2 := os.MkdirAll(outputDirectory, 0777); err2 != nil {
 				log.Fatal(err)
 			}
 		}
-		err = season.Export(outputDirectory)
-		if err != nil {
-			fmt.Println(err)
-		}
+
+		internal.ExecutePlanerSerial(settings, outputDirectory, executionTimes)
 	},
 }
 
@@ -87,4 +79,5 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "settings.json", "path to config file")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "level", "info", "set loglevel (possibilites: debug, info, warn)")
 	rootCmd.PersistentFlags().StringVar(&outputDirectory, "outDir", "output", "directory to which the files are exported")
+	rootCmd.PersistentFlags().IntVar(&executionTimes, "times", 10, "how many times should be tried to find a optimal schedule")
 }

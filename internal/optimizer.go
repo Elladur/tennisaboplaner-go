@@ -9,8 +9,9 @@ type Optimizer struct {
 
 // Optimize is the main function of the optimizer
 // It will optimize the season in a way that the score is minimal for the schedule
-func (o *Optimizer) Optimize() {
+func (o *Optimizer) Optimize() float64 {
 	swaps := 1
+	var score float64
 	for swaps > 0 {
 		swaps = 0
 		log.Debug("Start a new round of optimization")
@@ -21,13 +22,15 @@ func (o *Optimizer) Optimize() {
 		log.Debug("Optimizing by swapping matches")
 		swaps += o.optimizeBySwappingMatches()
 
+		score = GetScore(o.Season.Schedule, o.Season.Players)
 		log.WithFields(log.Fields{
-			"score": GetScore(o.Season.Schedule, o.Season.Players),
+			"score": score,
 			"swaps": swaps,
 		}).Info("Finished a round of optimization")
 	}
 
 	log.Info("Optimization finished")
+	return score
 }
 
 func (o *Optimizer) optimizeBySwappingPlayers() int {
