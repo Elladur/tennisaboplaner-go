@@ -61,8 +61,14 @@ var rootCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 		}
+		log.WithFields(log.Fields{
+			"level":  logLevel,
+			"config": cfgFile,
+			"times":  executionTimes,
+			"outDir": outputDirectory,
+		}).Info("Running with parameters:")
 
-		internal.ExecutePlanerSerial(settings, outputDirectory, executionTimes)
+		internal.ExecutePlanerParallel(settings, outputDirectory, executionTimes)
 	},
 }
 
@@ -79,5 +85,5 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "settings.json", "path to config file")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "level", "info", "set loglevel (possibilites: debug, info, warn)")
 	rootCmd.PersistentFlags().StringVar(&outputDirectory, "outDir", "output", "directory to which the files are exported")
-	rootCmd.PersistentFlags().IntVar(&executionTimes, "times", 10, "how many times should be tried to find a optimal schedule")
+	rootCmd.PersistentFlags().IntVar(&executionTimes, "times", 100, "how many times should be tried to find a optimal schedule")
 }

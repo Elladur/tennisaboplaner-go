@@ -27,5 +27,5 @@ func main() {
 	pprof.StartCPUProfile(f)
 	defer pprof.StopCPUProfile()
 
-	internal.ExecutePlanerSerial(settings, "output", 100)
+	internal.ExecutePlanerParallel(settings, "output", 100)
 }

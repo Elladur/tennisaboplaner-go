@@ -30,5 +30,5 @@ func TestPerformance(t *testing.T) {
 	internal.ExecutePlanerSerial(settings, t.TempDir(), 100)
 	elapsed := time.Since(start)
 	fmt.Printf("100 optimizations took %s\n", elapsed)
-	assert.Less(t, elapsed, 11*time.Second)
+	assert.Less(t, elapsed, 6*time.Second)
 }

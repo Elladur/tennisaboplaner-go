@@ -26,10 +26,10 @@ func (o *Optimizer) Optimize() float64 {
 		log.WithFields(log.Fields{
 			"score": score,
 			"swaps": swaps,
-		}).Info("Finished a round of optimization")
+		}).Debug("Finished a round of optimization")
 	}
 
-	log.Info("Optimization finished")
+	log.Debug("Optimization finished")
 	return score
 }
 
