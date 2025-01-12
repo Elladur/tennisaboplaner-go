@@ -69,6 +69,7 @@ func ExecutePlanerParallel(settings SeasonSettings, directory string, executions
 func executeOptimize(settings SeasonSettings, c chan seasonResult) {
 	s, err := CreateSeasonFromSettings(settings)
 	if err != nil {
+		log.Fatal("Could not create season from settings: ", err)
 		return
 	}
 	optimizer := Optimizer{Season: &s}
