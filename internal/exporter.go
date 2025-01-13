@@ -103,18 +103,24 @@ func (s Season) exportExcel(directoy string) error {
 	if err != nil {
 		return err
 	}
-	if err := f.SetCellValue(opponentSheet, getCell(0, 0), "Match"); err != nil {
+	if err := f.SetCellValue(costSheet, getCell(0, 0), "Player"); err != nil {
 		return err
 	}
-	if err := f.SetCellValue(opponentSheet, getCell(1, 0), "Cost"); err != nil {
+	if err := f.SetCellValue(costSheet, getCell(1, 0), "Match"); err != nil {
 		return err
 	}
-	for i := range s.Players {
+	if err := f.SetCellValue(costSheet, getCell(2, 0), "Cost"); err != nil {
+		return err
+	}
+	for i, p := range s.Players {
 		timesPlaying := float64(len(getRoundIndizesOfPlayer(s.Schedule, i)))
-		if err := f.SetCellValue(opponentSheet, getCell(0, i+1), timesPlaying); err != nil {
+		if err := f.SetCellValue(costSheet, getCell(0, i+1), p.Name); err != nil {
 			return err
 		}
-		if err := f.SetCellValue(opponentSheet, getCell(1, i+1), costPerMatch*timesPlaying); err != nil {
+		if err := f.SetCellValue(costSheet, getCell(1, i+1), timesPlaying); err != nil {
+			return err
+		}
+		if err := f.SetCellValue(costSheet, getCell(2, i+1), costPerMatch*timesPlaying); err != nil {
 			return err
 		}
 	}
