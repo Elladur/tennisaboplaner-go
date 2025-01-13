@@ -156,12 +156,12 @@ func (s Season) exportCalendarFileForPlayer(player int, directory string) error 
 	cal.SetMethod(ics.MethodRequest)
 	for _, i := range getRoundIndizesOfPlayer(s.Schedule, player) {
 		date := s.dates[i]
-		event := cal.AddEvent(fmt.Sprintf("Tennisab %s", date.Format(time.DateOnly)))
+		event := cal.AddEvent(fmt.Sprintf("Tennisabo %s", date.Format(time.DateOnly)))
 		event.SetCreatedTime(time.Now())
 		event.SetDtStampTime(time.Now())
 		event.SetModifiedAt(time.Now())
-		startDate := date.Add(time.Duration(s.StartTime.Hour) * time.Hour).Add(time.Duration(s.StartTime.Minute) * time.Minute)
-		endDate := date.Add(time.Duration(s.EndTime.Hour) * time.Hour).Add(time.Duration(s.EndTime.Minute) * time.Minute)
+		startDate := time.Date(date.Year(), date.Month(), date.Day(), s.StartTime.Hour, s.StartTime.Minute, 0, 0, &s.location)
+		endDate := time.Date(date.Year(), date.Month(), date.Day(), s.EndTime.Hour, s.EndTime.Minute, 0, 0, &s.location)
 		event.SetStartAt(startDate)
 		event.SetEndAt(endDate)
 		event.SetSummary("Tennisabo")

@@ -18,6 +18,7 @@ type Season struct {
 	dates          []time.Time
 	fixedRounds    []int
 	Schedule       [][]Match
+	location       time.Location
 }
 
 type simpleTime struct {
@@ -44,11 +45,11 @@ func CreateSeasonFromSettings(settings SeasonSettings) (Season, error) {
 		return Season{}, err
 	}
 
-	start, err := time.ParseInLocation(time.DateTime, settings.Start, location)
+	start, err := time.Parse(time.DateTime, settings.Start)
 	if err != nil {
 		return Season{}, err
 	}
-	end, err := time.ParseInLocation(time.DateTime, settings.End, location)
+	end, err := time.Parse(time.DateTime, settings.End)
 	if err != nil {
 		return Season{}, err
 	}
@@ -60,10 +61,10 @@ func CreateSeasonFromSettings(settings SeasonSettings) (Season, error) {
 			return Season{}, err
 		}
 	}
-	return createSeason(settings.Players, start, end, settings.NumberOfCourts, settings.CalendarTitle, settings.OverallCost, excludedDates), nil
+	return createSeason(settings.Players, start, end, settings.NumberOfCourts, settings.CalendarTitle, settings.OverallCost, excludedDates, *location), nil
 }
 
-func createSeason(players []Player, start time.Time, end time.Time, numberOfCourts int, calendarTitle string, overallCosts float64, excludedDates []time.Time) Season {
+func createSeason(players []Player, start time.Time, end time.Time, numberOfCourts int, calendarTitle string, overallCosts float64, excludedDates []time.Time, location time.Location) Season {
 	startTime := simpleTime{start.Hour(), start.Minute()}
 	endTime := simpleTime{end.Hour(), end.Minute()}
 	start = start.Truncate(24 * time.Hour)
@@ -81,6 +82,7 @@ func createSeason(players []Player, start time.Time, end time.Time, numberOfCour
 		OverallCosts:   overallCosts,
 		ExcludedDates:  excludedDates,
 		dates:          dates,
+		location:       location,
 	}
 	season.CreateSchedule()
 	return season

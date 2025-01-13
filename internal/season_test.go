@@ -51,8 +51,9 @@ func TestCreateSeason(t *testing.T) {
 	start := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
 	end := time.Date(2023, 12, 31, 12, 0, 0, 0, time.UTC)
 	excludedDates := []time.Time{time.Date(2023, 6, 1, 0, 0, 0, 0, time.UTC)}
+	location := time.UTC
 
-	season := createSeason(players, start, end, 2, "Test Season", 100.0, excludedDates)
+	season := createSeason(players, start, end, 2, "Test Season", 100.0, excludedDates, *location)
 	assert.Equal(t, 2, len(season.Players))
 	assert.Equal(t, "Test Season", season.CalendarTitle)
 	assert.Equal(t, 100.0, season.OverallCosts)
@@ -62,6 +63,7 @@ func TestCreateSeason(t *testing.T) {
 	assert.Equal(t, simpleTime{12, 0}, season.EndTime)
 	assert.Equal(t, time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, time.UTC), season.Start)
 	assert.Equal(t, time.Date(end.Year(), end.Month(), end.Day(), 0, 0, 0, 0, time.UTC), season.End)
+	assert.Equal(t, *location, season.location)
 	assert.NotEmpty(t, season.dates)
 	assert.NotEmpty(t, season.Schedule)
 }
@@ -225,8 +227,9 @@ func setupTestSeason() Season {
 	start := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
 	end := time.Date(2023, 2, 31, 12, 0, 0, 0, time.UTC)
 	excludedDates := []time.Time{time.Date(2023, 1, 29, 0, 0, 0, 0, time.UTC)}
+	location := time.UTC
 
-	season := createSeason(players, start, end, 2, "Test Season", 100.0, excludedDates)
+	season := createSeason(players, start, end, 2, "Test Season", 100.0, excludedDates, *location)
 	//data, err := json.Marshal(season)
 	//if err != nil {
 	//fmt.Println(err)
