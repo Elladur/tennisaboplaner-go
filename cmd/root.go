@@ -25,11 +25,11 @@ var rootCmd = &cobra.Command{
 	Long: `tennisaboplaner-go automates the process to create an schedule,
 	where everybody has prescheduled matches. It can consider various
 	requirements from the players. For instance we can exclude certain
-	dates for a specific player. This can be used if at the start of 
-	the season somebody already knows that he will not be present at a 
+	dates for a specific player. This can be used if at the start of
+	the season somebody already knows that he will not be present at a
 	certain week. Additonally we can exclude complete dates from planning
-	(e.g. christmas). All these settings can be specified in a 
-	settings.json. For an example take look at 
+	(e.g. christmas). All these settings can be specified in a
+	settings.json. For an example take look at
 	https://github.com/Elladur/tennisaboplaner-go.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// loglevel switch
