@@ -31,7 +31,12 @@ func (s Season) Export(directory string) error {
 
 func (s Season) exportExcel(directoy string) error {
 	f := excelize.NewFile()
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			// Handle error if needed
+			fmt.Printf("Error closing excel file: %v", err)
+		}
+	}()
 
 	// initial sheet for schedule
 	if err := addInitialScheduleSheet(f, s); err != nil {
@@ -234,7 +239,12 @@ func (s Season) exportCalendarFileForPlayer(player int, directory string) error 
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			// Handle error if needed
+			fmt.Printf("Error closing excel file: %v", err)
+		}
+	}()
 
 	_, err = f.WriteString(fileContent)
 	if err != nil {

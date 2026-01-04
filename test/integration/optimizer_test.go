@@ -27,7 +27,11 @@ func TestPerformance(t *testing.T) {
 	}
 
 	start := time.Now()
-	internal.ExecutePlanerSerial(settings, t.TempDir(), 100)
+	err = internal.ExecutePlanerSerial(settings, t.TempDir(), 100)
+	if err != nil {
+		t.Error("Error during optimization: " + err.Error())
+		return
+	}
 	elapsed := time.Since(start)
 	fmt.Printf("100 optimizations took %s\n", elapsed)
 	assert.Less(t, elapsed, 6*time.Second)

@@ -23,9 +23,22 @@ func main() {
 	}
 
 	f, _ := os.Create("cpu.prof")
-	defer f.Close()
-	pprof.StartCPUProfile(f)
+	defer func() {
+		if err := f.Close(); err != nil {
+			// Handle error if needed
+			fmt.Printf("Error closing excel file: %v", err)
+		}
+	}()
+	err = pprof.StartCPUProfile(f)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	defer pprof.StopCPUProfile()
 
-	internal.ExecutePlanerParallel(settings, "output", 100)
+	err = internal.ExecutePlanerParallel(settings, "output", 100)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }
