@@ -1,19 +1,11 @@
 repos:
-  - repo: https://github.com/dnephin/pre-commit-golang
-    rev: v0.5.1
-    hooks:
-      - id: go-fmt         # Formats Go files using `gofmt`.
-      - id: go-lint        # Runs `golint` to check for style issues.
-      - id: go-vet         # Runs `go vet` to catch code issues.
-      - id: go-mod-tidy    # Ensures `go.mod` and `go.sum` are tidy.
-
   - repo: https://github.com/zricethezav/gitleaks
-    rev: v8.22.0
+    rev: v8.30.0
     hooks:
       - id: gitleaks
 
   -   repo: https://github.com/pre-commit/pre-commit-hooks
-      rev: v5.0.0
+      rev: v6.0.0
       hooks:
       - id: trailing-whitespace
       - id: check-added-large-files
