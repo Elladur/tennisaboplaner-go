@@ -68,7 +68,10 @@ var rootCmd = &cobra.Command{
 			"outDir": outputDirectory,
 		}).Info("Running with parameters:")
 
-		internal.ExecutePlanerParallel(settings, outputDirectory, executionTimes)
+		err = internal.ExecutePlanerParallel(settings, outputDirectory, executionTimes)
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 

@@ -10,7 +10,8 @@ import (
 func TestExport(t *testing.T) {
 	season := setupStaticTestSeason()
 	tempDir := t.TempDir()
-	season.Export(tempDir)
+	err := season.Export(tempDir)
+	assert.NoError(t, err)
 	result, err := os.Stat(tempDir)
 	if err != nil {
 		t.Error("couldnt get file info")
@@ -35,7 +36,8 @@ func TestExportExcel(t *testing.T) {
 func TestExportCalendarFiles(t *testing.T) {
 	season := setupStaticTestSeason()
 	tempDir := t.TempDir()
-	season.exportCalendarFiles(tempDir)
+	err := season.exportCalendarFiles(tempDir)
+	assert.NoError(t, err)
 	for _, player := range season.Players {
 		result, err := os.Stat(tempDir + string(os.PathSeparator) + player.Name + ".ics")
 		if err != nil {

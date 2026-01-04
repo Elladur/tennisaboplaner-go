@@ -34,7 +34,10 @@ func ExecutePlanerSerial(settings SeasonSettings, directory string, executions i
 	}).Info("Finished Planning")
 
 	log.Info("Start exporting")
-	bestSeason.season.Export(directory)
+	err := bestSeason.season.Export(directory)
+	if err != nil {
+		return err
+	}
 	log.Info("Finished.")
 	return nil
 }
@@ -47,10 +50,10 @@ func ExecutePlanerParallel(settings SeasonSettings, directory string, executions
 	log.WithFields(log.Fields{
 		"times": executions,
 	}).Info("Start planning multiple times")
-	for i := 0; i < executions; i++ {
+	for range executions {
 		go executeOptimize(settings, c)
 	}
-	for i := 0; i < executions; i++ {
+	for range executions {
 		result := <-c
 		if result.score < bestSeason.score {
 			bestSeason = result
@@ -61,7 +64,10 @@ func ExecutePlanerParallel(settings SeasonSettings, directory string, executions
 	}).Info("Finished Planning")
 
 	log.Info("Start exporting")
-	bestSeason.season.Export(directory)
+	err := bestSeason.season.Export(directory)
+	if err != nil {
+		return err
+	}
 	log.Info("Finished.")
 	return nil
 }
