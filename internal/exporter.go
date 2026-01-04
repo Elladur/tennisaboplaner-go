@@ -13,6 +13,7 @@ import (
 const scheduleSheet = "Sheet1"
 const scheduleSheetName = "Schedule"
 const opponentSheet = "Partner by Player"
+const numberOfMatchesSheet = "NumMatches"
 const costSheet = "Cost"
 
 // Export the season into various files (excel & ical)
@@ -30,9 +31,36 @@ func (s Season) Export(directory string) error {
 
 func (s Season) exportExcel(directoy string) error {
 	f := excelize.NewFile()
-	defer func() {
-		f.Close()
-	}()
+	defer f.Close()
+
+	// initial sheet for schedule
+	if err := addInitialScheduleSheet(f, s); err != nil {
+		return err
+	}
+
+	// new sheet for oppopnent tab
+	if err := addOpponentSheet(f, s); err != nil {
+		return err
+	}
+
+	// new sheet for matches tab
+	if err := addNumberOfMatchesSheet(f, s); err != nil {
+		return err
+	}
+
+	// new sheet for costs
+	if err := addCostSheet(f, s); err != nil {
+		return err
+	}
+
+	if err := f.SaveAs(filepath.Join(directoy, "schedule.xlsx")); err != nil {
+		return err
+	}
+	return nil
+}
+
+
+func addInitialScheduleSheet(f *excelize.File, s Season) error {
 	f.WorkBook.Sheets.Sheet[f.GetActiveSheetIndex()].Name = scheduleSheetName
 	// add header
 	err := f.SetCellValue(scheduleSheet, "A1", "Date")
@@ -58,9 +86,11 @@ func (s Season) exportExcel(directoy string) error {
 			}
 		}
 	}
+	return nil
+}
 
-	// new sheet for oppopnent tab
-	_, err = f.NewSheet(opponentSheet)
+func addOpponentSheet(f *excelize.File, s Season) error {
+	_, err := f.NewSheet(opponentSheet)
 	if err != nil {
 		return err
 	}
@@ -96,10 +126,46 @@ func (s Season) exportExcel(directoy string) error {
 			}
 		}
 	}
+	return nil
+}
 
-	// new sheet for costs
+func addNumberOfMatchesSheet(f *excelize.File, s Season) error {
+	_, err := f.NewSheet(numberOfMatchesSheet)
+	if err != nil {
+		return err
+	}
+	if err := f.SetCellValue(numberOfMatchesSheet, getCell(0, 0), "Players"); err != nil {
+		return err
+	}
+	for i, p := range s.Players {
+		if err := f.SetCellValue(numberOfMatchesSheet, getCell(0, i+1), p.Name); err != nil {
+			return err
+		}
+		for j := range s.Players {
+			if i == j {
+				continue
+			}
+			match, err := createMatch(i, j)
+			if err != nil {
+				return err
+			}
+			getnumMatches := float64(len(getRoundIndizesOfMatch(s.Schedule, match)))
+			if err := f.SetCellValue(numberOfMatchesSheet, getCell(j+1, i+1), getnumMatches); err != nil {
+				return err
+			}
+		}
+	}
+	for i, p := range s.Players {
+		if err := f.SetCellValue(numberOfMatchesSheet, getCell(i+1, 0), p.Name); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func addCostSheet(f *excelize.File, s Season) error {
 	costPerMatch := s.OverallCosts / float64(len(s.Schedule)*s.NumberOfCourts) / 2
-	_, err = f.NewSheet(costSheet)
+	_, err := f.NewSheet(costSheet)
 	if err != nil {
 		return err
 	}
@@ -123,10 +189,6 @@ func (s Season) exportExcel(directoy string) error {
 		if err := f.SetCellValue(costSheet, getCell(2, i+1), costPerMatch*timesPlaying); err != nil {
 			return err
 		}
-	}
-
-	if err := f.SaveAs(filepath.Join(directoy, "schedule.xlsx")); err != nil {
-		return err
 	}
 	return nil
 }
