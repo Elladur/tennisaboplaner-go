@@ -15,5 +15,6 @@ It will generate a Excel-File in the output-folder which represents the schedule
 
 Pull requests are welcome. Please open an issue first
 to discuss what you would like to change.
+It is possible to use the devcontainer configuration to clone into a container volume and build the source code. 
 
 Please make sure to update tests as appropriate.
