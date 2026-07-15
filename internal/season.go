@@ -207,7 +207,7 @@ func (s *Season) swapPlayersOfRound(roundIdx int, player1 int, player2 int) bool
 				s.Schedule[roundIdx][i] = match
 			}
 		} else {
-			switch  m.player1{
+			switch m.player1 {
 			case player1:
 				s.Schedule[roundIdx][i] = createPartialMatch(player2)
 			case player2:
