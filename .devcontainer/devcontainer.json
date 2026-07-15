@@ -15,8 +15,8 @@
 			]
 		}
 	},
-	"workspaceFolder": "/workspace",
-	"workspaceMount": "source=tennisplaner_volume,target=/workspace,type=volume",
+	//"workspaceFolder": "/workspace",
+	//"workspaceMount": "source=tennisplaner_volume,target=/workspace,type=volume",
 	// "postCreateCommand": ""
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],

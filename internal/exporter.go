@@ -64,7 +64,6 @@ func (s Season) exportExcel(directoy string) error {
 	return nil
 }
 
-
 func addInitialScheduleSheet(f *excelize.File, s Season) error {
 	f.WorkBook.Sheets.Sheet[f.GetActiveSheetIndex()].Name = scheduleSheetName
 	// add header
