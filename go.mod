@@ -1,6 +1,6 @@
 module github.com/Elladur/tennisaboplaner-go
 
-go 1.26.5
+go 1.27.1
 
 require (
 	github.com/arran4/golang-ical v0.3.5

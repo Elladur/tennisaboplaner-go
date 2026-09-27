@@ -69,7 +69,7 @@ func createSeason(players []Player, start time.Time, end time.Time, numberOfCour
 	endTime := simpleTime{end.Hour(), end.Minute()}
 	start = start.Truncate(24 * time.Hour)
 	end = end.Truncate(24 * time.Hour)
-	dates := generateDates(start, end, excludedDates)
+	dates := generateDates(start, end.Add(time.Duration(endTime.Hour)*time.Hour+time.Duration(endTime.Minute)*time.Minute), excludedDates)
 
 	season := Season{
 		Players:        players,
