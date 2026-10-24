@@ -26,3 +26,4 @@ go.work.sum
 tennisaboplaner-go
 cpu.prof
 output/
+setting_*.json
