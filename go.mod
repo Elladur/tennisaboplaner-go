@@ -4,7 +4,7 @@ go 1.27.1
 
 require (
 	github.com/arran4/golang-ical v0.3.8
-	github.com/montanaflynn/stats v0.13.0
+	github.com/montanaflynn/stats v0.14.0
 	github.com/sirupsen/logrus v1.10.2
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
