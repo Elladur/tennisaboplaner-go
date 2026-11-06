@@ -11,6 +11,17 @@ Currently, we don't have any system requirements.
 Adapt settings.json to your needs and execute `tennisaboplaner-go`. You can use the `--help` to see default parameters and possible options.
 It will generate a Excel-File in the output-folder which represents the schedule. Additionally, it will create a calendar (*.ics) for each player.
 
+### Updating
+
+The CLI provides an update functionality for versions >= 1.0
+The CLI checks GitHub releases on startup and prints a notice when a newer version is available. You can also update manually:
+
+```
+tennisaboplaner-go update
+```
+
+Use `--no-update-check` to disable the automatic check, or `--version` to print the current version.
+
 ## Contributing
 
 Pull requests are welcome. Please open an issue first
