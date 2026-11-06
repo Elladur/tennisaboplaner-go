@@ -1,0 +1,30 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugins": [
+    "@dietrichgebert/ponytail",
+    "superpowers@git+https://github.com/obra/superpowers.git",
+    "opencode-mem@latest"
+  ],
+  "lsp": true,
+  "mcp": {
+    "servers": {
+      "lean-lsp": {
+        "type": "local",
+        "disabled": false,
+        "command": [
+          "uvx",
+          "lean-lsp-mcp"
+        ]
+      },
+      "codegraph": {
+        "type": "local",
+        "disabled": false,
+        "command": [
+          "codegraph",
+          "serve",
+          "--mcp"
+        ]
+      }
+    }
+  }
+}

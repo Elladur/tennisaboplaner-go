@@ -1,9 +1,14 @@
 {
   "features": {
-    "ghcr.io/devcontainers/features/go:1.4.0": {
-      "version": "1.4.0",
-      "resolved": "ghcr.io/devcontainers/features/go@sha256:3b2c7acfdb24de88292283d10eb7517ccc45f60ae22a97030f1cf4fbd03634f3",
-      "integrity": "sha256:3b2c7acfdb24de88292283d10eb7517ccc45f60ae22a97030f1cf4fbd03634f3"
+    "ghcr.io/devcontainers-extra/features/opencode:1": {
+      "version": "1.0.0",
+      "resolved": "ghcr.io/devcontainers-extra/features/opencode@sha256:7c15617cc9e501bc218097adc4910a00f81ed52fc5a5eef463aa1cc01317f9ba",
+      "integrity": "sha256:7c15617cc9e501bc218097adc4910a00f81ed52fc5a5eef463aa1cc01317f9ba"
+    },
+    "ghcr.io/devcontainers/features/go:1.4.1": {
+      "version": "1.4.1",
+      "resolved": "ghcr.io/devcontainers/features/go@sha256:2f2ed290df9a5f1841340b14cb8a287cf0574a816967dd84dcfe42fdd97b897e",
+      "integrity": "sha256:2f2ed290df9a5f1841340b14cb8a287cf0574a816967dd84dcfe42fdd97b897e"
     }
   }
 }
