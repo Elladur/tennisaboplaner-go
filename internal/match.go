@@ -39,16 +39,11 @@ func (m *Match) UnmarshalJSON(data []byte) error {
 		if err != nil {
 			return err
 		}
-		m.player1 = val.player1
-		m.player2 = val.player2
-		m.isPlayer2Set = true
+		*m = val
 		return nil
 	}
 	val := createPartialMatch(match.Player1)
-	m.player1 = val.player1
-	m.player2 = val.player2
-	m.isPlayer2Set = true
-	m = &val
+	*m = val
 	return nil
 }
 
