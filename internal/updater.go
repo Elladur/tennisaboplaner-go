@@ -2,8 +2,8 @@ package internal
 
 import (
 	"archive/tar"
-	"bytes"
 	"archive/zip"
+	"bytes"
 	"compress/gzip"
 	"context"
 	"fmt"
@@ -84,7 +84,7 @@ func PerformUpdate(ctx context.Context) (UpdateInfo, error) {
 	if err != nil {
 		return info, fmt.Errorf("download failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode >= 300 {
 		return info, fmt.Errorf("download failed: HTTP %d", resp.StatusCode)
 	}
@@ -101,20 +101,20 @@ func PerformUpdate(ctx context.Context) (UpdateInfo, error) {
 		return info, err
 	}
 	tmpName := tmp.Name()
-	tmp.Close()
+	_ = tmp.Close()
 
 	if err := extractExecutable(resp.Body, release.AssetURL, tmpName); err != nil {
-		os.Remove(tmpName)
+		_ = os.Remove(tmpName)
 		return info, err
 	}
 	if err := os.Chmod(tmpName, 0755); err != nil {
-		os.Remove(tmpName)
+		_ = os.Remove(tmpName)
 		return info, err
 	}
 
 	// Replace current binary.
 	if err := os.Rename(tmpName, cmdPath); err != nil {
-		os.Remove(tmpName)
+		_ = os.Remove(tmpName)
 		return info, fmt.Errorf("replace failed: %w", err)
 	}
 
@@ -146,13 +146,13 @@ func extractExecutable(src io.Reader, url, dst string) error {
 			if err != nil {
 				return err
 			}
-			defer rc.Close()
+			defer func() { _ = rc.Close() }()
 			out, err := os.Create(dst)
 			if err != nil {
 				return err
 			}
 			_, err = io.Copy(out, rc)
-			out.Close()
+			_ = out.Close()
 			return err
 		}
 		return fmt.Errorf("no file in zip")
@@ -161,7 +161,7 @@ func extractExecutable(src io.Reader, url, dst string) error {
 		if err != nil {
 			return err
 		}
-		defer gz.Close()
+		defer func() { _ = gz.Close() }()
 		tr := tar.NewReader(gz)
 		for {
 			h, err := tr.Next()
@@ -179,7 +179,7 @@ func extractExecutable(src io.Reader, url, dst string) error {
 				return err
 			}
 			_, err = io.Copy(out, tr)
-			out.Close()
+			_ = out.Close()
 			if err != nil {
 				return err
 			}
@@ -191,7 +191,7 @@ func extractExecutable(src io.Reader, url, dst string) error {
 		if err != nil {
 			return err
 		}
-		defer out.Close()
+		defer func() { _ = out.Close() }()
 		_, err = io.Copy(out, src)
 		return err
 	}

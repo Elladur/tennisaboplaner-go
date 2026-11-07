@@ -19,6 +19,8 @@ Module: `github.com/Elladur/tennisaboplaner-go`. Go 1.27.
 - Vet: `go vet ./...`
 - Lint: `golangci-lint run ./...`
 
+After every change, run the full check suite: `gofmt -w .`, `go vet ./...`, `golangci-lint run ./...`, and `go test ./...` before considering the work done.
+
 CLI flags (defined in `cmd/root.go`): `--config` (default `settings.json`), `--level` (`info`/`warn`/`debug`), `--outDir` (default `output`), `--times` (default `100`).
 
 ## Structure
