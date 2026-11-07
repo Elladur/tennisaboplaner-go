@@ -22,15 +22,15 @@ var updateCmd = &cobra.Command{
 			log.Fatal(err)
 			return
 		}
-		if !info.Available && info.Latest == "" {
-			fmt.Println("No newer release found. You are up to date.")
-			return
-		}
 		if info.Available {
 			fmt.Printf("Update available: %s -> %s\n%s\n", info.Current, info.Latest, info.ReleaseURL)
 			return
 		}
-		fmt.Printf("Updated to %s\n", info.Latest)
+		if info.Latest == "" {
+			fmt.Println("No release found. You are up to date.")
+			return
+		}
+		fmt.Printf("No update needed. You are already on %s (latest: %s).\n", info.Current, info.Latest)
 	},
 }
 
