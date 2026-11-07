@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"sort"
 	"time"
 )
 
@@ -113,9 +114,44 @@ func (s *Season) CreateSchedule() {
 }
 
 func (s *Season) createRound(index int) ([]Match, bool) {
-	var matches []Match
-	playerIdx := shuffle(s.getPossiblePlayers(index))
+	possible := s.getPossiblePlayers(index)
 
+	// cumulative play counts up to previous rounds
+	counts := make([]int, len(s.Players))
+	for r := 0; r < index && r < len(s.Schedule); r++ {
+		for _, m := range s.Schedule[r] {
+			if m.isPlayer2Set {
+				counts[m.player1]++
+				counts[m.player2]++
+			} else {
+				counts[m.player1]++
+			}
+		}
+	}
+
+	// shuffle for diversity, then stable-sort by play count (greedy balance)
+	shuffle(possible)
+	type cand struct {
+		p     int
+		count int
+		order int
+	}
+	cands := make([]cand, 0, len(possible))
+	for i, p := range possible {
+		cands = append(cands, cand{p: p, count: counts[p], order: i})
+	}
+	sort.SliceStable(cands, func(a, b int) bool {
+		if cands[a].count != cands[b].count {
+			return cands[a].count < cands[b].count
+		}
+		return cands[a].order < cands[b].order
+	})
+	playerIdx := make([]int, 0, len(cands))
+	for _, c := range cands {
+		playerIdx = append(playerIdx, c.p)
+	}
+
+	var matches []Match
 	for len(playerIdx) > 0 && len(matches) < s.NumberOfCourts {
 		switch {
 		case len(playerIdx) >= 2:
