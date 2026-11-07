@@ -1,0 +1,36 @@
+{
+    "CalendarTitle": "Weighted",
+    "Start": "2024-01-01 19:00:00",
+    "End": "2024-08-01 21:00:00",
+    "Location": "Europe/Berlin",
+    "ExcludedDates": [],
+    "OverallCost": 800,
+    "NumberOfCourts": 2,
+    "Players": [
+        {
+            "Name": "A",
+            "CannotPlay": [],
+            "Weight": 0.5
+        },
+        {
+            "Name": "B",
+            "CannotPlay": [
+                "2024-01-08"
+            ],
+            "Weight": 1
+        },
+        {
+            "Name": "C",
+            "CannotPlay": [],
+            "Weight": 2
+        },
+        {
+            "Name": "D",
+            "CannotPlay": [
+                "2024-02-05",
+                "2024-02-12"
+            ],
+            "Weight": 1
+        }
+    ]
+}

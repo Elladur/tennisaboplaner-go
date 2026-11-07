@@ -15,6 +15,7 @@ Module: `github.com/Elladur/tennisaboplaner-go`. Go 1.27.
 - Tests: `go test ./...`
 - Tests (verbose): `go test -v ./internal/...`
 - Integration test (performance): `go test ./test/integration/...`
+- Integration tests (flaky/tagged): `go test -tags=integration ./test/integration/...`
 - Format: `gofmt -w .`
 - Vet: `go vet ./...`
 - Lint: `golangci-lint run ./...`
@@ -38,7 +39,7 @@ CLI flags (defined in `cmd/root.go`): `--config` (default `settings.json`), `--l
   - `executor.go` — serial/parallel execution of planning runs, picks best score.
   - `exporter.go` — Excel + iCal export.
   - `helper.go` — generic helpers (`isInSlice`, `pop`, `shuffle`).
-- `test/integration/` — performance test.
+- `test/integration/` — performance and tagged integration tests; testdata lives in `test/integration/testdata/`.
 - `test/cpu_perfm.go` — standalone perf profiling helper.
 - `settings.json` / `setting_2027.json` — example configs.
 

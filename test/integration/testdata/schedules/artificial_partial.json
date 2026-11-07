@@ -1,0 +1,334 @@
+{
+  "players": [
+    {
+      "CannotPlay": null,
+      "Name": "A",
+      "Weight": 1
+    },
+    {
+      "CannotPlay": null,
+      "Name": "B",
+      "Weight": 1
+    },
+    {
+      "CannotPlay": null,
+      "Name": "C",
+      "Weight": 1
+    }
+  ],
+  "schedule": [
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 0,
+        "Player2": 1
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 2,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 0,
+        "Player2": 1
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 2,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 1,
+        "Player2": 2
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 0,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 0,
+        "Player2": 2
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 1,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 0,
+        "Player2": 1
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 2,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 1,
+        "Player2": 2
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 0,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 0,
+        "Player2": 2
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 1,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 0,
+        "Player2": 1
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 2,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 1,
+        "Player2": 2
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 0,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 0,
+        "Player2": 2
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 1,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 0,
+        "Player2": 2
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 1,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 1,
+        "Player2": 2
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 0,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 0,
+        "Player2": 1
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 2,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 0,
+        "Player2": 2
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 1,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 0,
+        "Player2": 1
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 2,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 1,
+        "Player2": 2
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 0,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 1,
+        "Player2": 2
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 0,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 0,
+        "Player2": 2
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 1,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 0,
+        "Player2": 1
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 2,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 0,
+        "Player2": 2
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 1,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 1,
+        "Player2": 2
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 0,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 1,
+        "Player2": 2
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 0,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 0,
+        "Player2": 2
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 1,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 0,
+        "Player2": 1
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 2,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 0,
+        "Player2": 1
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 2,
+        "Player2": 0
+      }
+    ],
+    [
+      {
+        "IsPlayer2Set": true,
+        "Player1": 0,
+        "Player2": 2
+      },
+      {
+        "IsPlayer2Set": false,
+        "Player1": 1,
+        "Player2": 0
+      }
+    ]
+  ],
+  "score": 0.724727747818865
+}
