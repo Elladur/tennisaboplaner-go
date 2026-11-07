@@ -47,8 +47,44 @@ func computeScheduleStats(schedule [][]Match, players []Player) scheduleStats {
 	return s
 }
 
-// GetScore gives the value which was used to optimize the schedule
+// scoreWeights controls the relative importance of the four scoring components.
+type scoreWeights struct {
+	PlayTime   float64 `json:"PlayTime"`
+	Matchup    float64 `json:"Matchup"`
+	PausePlay  float64 `json:"PausePlay"`
+	PauseMatch float64 `json:"PauseMatch"`
+}
+
+// defaultScoreWeights returns the default weights (play time dominant, matchup
+// slightly above pause regularity).
+func defaultScoreWeights() scoreWeights {
+	return scoreWeights{PlayTime: 3, Matchup: 1.5, PausePlay: 1, PauseMatch: 1}
+}
+
+// normalizeWeights replaces zero (unset) values with defaults.
+func normalizeWeights(w scoreWeights) scoreWeights {
+	d := defaultScoreWeights()
+	if w.PlayTime <= 0 {
+		w.PlayTime = d.PlayTime
+	}
+	if w.Matchup <= 0 {
+		w.Matchup = d.Matchup
+	}
+	if w.PausePlay <= 0 {
+		w.PausePlay = d.PausePlay
+	}
+	if w.PauseMatch <= 0 {
+		w.PauseMatch = d.PauseMatch
+	}
+	return w
+}
 func GetScore(schedule [][]Match, players []Player) float64 {
+	return getScoreWithWeights(schedule, players, defaultScoreWeights())
+}
+
+// getScoreWithWeights is like GetScore but uses the provided weights.
+func getScoreWithWeights(schedule [][]Match, players []Player, weights scoreWeights) float64 {
+	weights = normalizeWeights(weights)
 	statsData := computeScheduleStats(schedule, players)
 
 	val1 := getStdOfPlayerTimesPlayingStats(statsData, players)
@@ -56,8 +92,7 @@ func GetScore(schedule [][]Match, players []Player) float64 {
 	val3 := getStdOfPauseBetweenPlayingStats(statsData, schedule, players)
 	val4 := getStdOfPauseBetweenMatchesStats(statsData, schedule, players)
 
-	// since weight should define how often someone is playing, the number of playing is same important than all other factors combined
-	return 3*val1 + val2 + val3 + val4
+	return weights.PlayTime*val1 + weights.Matchup*val2 + weights.PausePlay*val3 + weights.PauseMatch*val4
 }
 
 func getStdOfPlayerTimesPlayingStats(s scheduleStats, players []Player) float64 {

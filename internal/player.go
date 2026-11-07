@@ -48,6 +48,10 @@ func (p *Player) UnmarshalJSON(data []byte) error {
 		}
 		p.CannotPlay = append(p.CannotPlay, t)
 	}
-	p.Weight = player.Weight
+	if player.Weight <= 0 {
+		p.Weight = 1
+	} else {
+		p.Weight = player.Weight
+	}
 	return nil
 }

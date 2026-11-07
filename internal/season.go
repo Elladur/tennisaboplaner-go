@@ -61,7 +61,8 @@ func CreateSeasonFromSettings(settings SeasonSettings) (Season, error) {
 		}
 		excludedDates = append(excludedDates, t)
 	}
-	return createSeason(settings.Players, start, end, settings.NumberOfCourts, settings.CalendarTitle, settings.OverallCost, excludedDates, *location), nil
+	season := createSeason(settings.Players, start, end, settings.NumberOfCourts, settings.CalendarTitle, settings.OverallCost, excludedDates, *location)
+	return season, nil
 }
 
 func createSeason(players []Player, start time.Time, end time.Time, numberOfCourts int, calendarTitle string, overallCosts float64, excludedDates []time.Time, location time.Location) Season {
