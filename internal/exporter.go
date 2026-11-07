@@ -7,6 +7,7 @@ import (
 	"time"
 
 	ics "github.com/arran4/golang-ical"
+	"github.com/montanaflynn/stats"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -15,6 +16,7 @@ const scheduleSheetName = "Schedule"
 const opponentSheet = "Partner by Player"
 const numberOfMatchesSheet = "NumMatches"
 const costSheet = "Cost"
+const gapStatsSheet = "GapStats"
 
 // Export the season into various files (excel & ical)
 func (s Season) Export(directory string) error {
@@ -55,6 +57,11 @@ func (s Season) exportExcel(directoy string) error {
 
 	// new sheet for costs
 	if err := addCostSheet(f, s); err != nil {
+		return err
+	}
+
+	// gap stats
+	if err := addGapStatsSheet(f, s); err != nil {
 		return err
 	}
 
@@ -191,6 +198,71 @@ func addCostSheet(f *excelize.File, s Season) error {
 			return err
 		}
 		if err := f.SetCellValue(costSheet, getCell(2, i+1), costPerMatch*timesPlaying); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func gapLengths(scheduleLen int, rounds []int) []int {
+	if scheduleLen <= 0 {
+		return nil
+	}
+	if len(rounds) == 0 {
+		return []int{scheduleLen}
+	}
+	gaps := make([]int, 0, len(rounds)+1)
+	gaps = append(gaps, rounds[0])
+	for j := 1; j < len(rounds); j++ {
+		gaps = append(gaps, rounds[j]-rounds[j-1]-1)
+	}
+	gaps = append(gaps, scheduleLen-1-rounds[len(rounds)-1])
+	return gaps
+}
+
+func addGapStatsSheet(f *excelize.File, s Season) error {
+	_, err := f.NewSheet(gapStatsSheet)
+	if err != nil {
+		return err
+	}
+	headers := []string{"Player", "RoundsPlaying", "GapCount", "AvgGap", "MaxGap", "MinGap"}
+	for i, h := range headers {
+		if err := f.SetCellValue(gapStatsSheet, getCell(0, i), h); err != nil {
+			return err
+		}
+	}
+	for i := range s.Players {
+		rounds := getRoundIndizesOfPlayer(s.Schedule, i)
+		gaps := gapLengths(len(s.Schedule), rounds)
+		if err := f.SetCellValue(gapStatsSheet, getCell(i+1, 0), s.Players[i].Name); err != nil {
+			return err
+		}
+		if err := f.SetCellValue(gapStatsSheet, getCell(i+1, 1), len(rounds)); err != nil {
+			return err
+		}
+		avg, maxv, minv := 0.0, 0.0, 0.0
+		if len(gaps) > 0 {
+			vals := stats.LoadRawData(gaps)
+			if v, err := stats.Mean(vals); err == nil {
+				avg = v
+			}
+			if v, err := stats.Max(vals); err == nil {
+				maxv = v
+			}
+			if v, err := stats.Min(vals); err == nil {
+				minv = v
+			}
+		}
+		if err := f.SetCellValue(gapStatsSheet, getCell(i+1, 2), len(gaps)); err != nil {
+			return err
+		}
+		if err := f.SetCellValue(gapStatsSheet, getCell(i+1, 3), avg); err != nil {
+			return err
+		}
+		if err := f.SetCellValue(gapStatsSheet, getCell(i+1, 4), maxv); err != nil {
+			return err
+		}
+		if err := f.SetCellValue(gapStatsSheet, getCell(i+1, 5), minv); err != nil {
 			return err
 		}
 	}
