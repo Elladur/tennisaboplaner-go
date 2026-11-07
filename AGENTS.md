@@ -52,6 +52,7 @@ CLI flags (defined in `cmd/root.go`): `--config` (default `settings.json`), `--l
 - Mutating fields on `Season` (e.g. `dates`, `fixedRounds`) are unexported; construct via `CreateSeasonFromSettings`/`createSeason`.
 - Logging via logrus; level controlled by `--level`.
 - Output dir and `output/` are gitignored; don't commit generated files.
+- Add unit tests and integration tests for new or changed behavior whenever feasible; keep them co-located with the code (`internal/*_test.go`, `test/integration/`).
 
 ## Notes
 

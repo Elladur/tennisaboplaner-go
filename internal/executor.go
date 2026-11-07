@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"math"
 
 	log "github.com/sirupsen/logrus"
@@ -9,11 +10,16 @@ import (
 type seasonResult struct {
 	season Season
 	score  float64
+	err    error
 }
 
 // ExecutePlanerSerial does n times planning and exports the best result
 func ExecutePlanerSerial(settings SeasonSettings, directory string, executions int) error {
+	if executions <= 0 {
+		return fmt.Errorf("executions must be positive")
+	}
 	bestSeason := seasonResult{season: Season{}, score: math.MaxFloat64}
+	hasResult := false
 
 	log.WithFields(log.Fields{
 		"times": executions,
@@ -27,7 +33,11 @@ func ExecutePlanerSerial(settings SeasonSettings, directory string, executions i
 		score := optimizer.Optimize()
 		if score < bestSeason.score {
 			bestSeason = seasonResult{season: s, score: score}
+			hasResult = true
 		}
+	}
+	if !hasResult {
+		return fmt.Errorf("no season produced")
 	}
 	log.WithFields(log.Fields{
 		"score": bestSeason.score,
@@ -44,7 +54,11 @@ func ExecutePlanerSerial(settings SeasonSettings, directory string, executions i
 
 // ExecutePlanerParallel does n times planning using go routines and exports the best result
 func ExecutePlanerParallel(settings SeasonSettings, directory string, executions int) error {
+	if executions <= 0 {
+		return fmt.Errorf("executions must be positive")
+	}
 	bestSeason := seasonResult{season: Season{}, score: math.MaxFloat64}
+	hasResult := false
 	c := make(chan seasonResult)
 
 	log.WithFields(log.Fields{
@@ -55,9 +69,16 @@ func ExecutePlanerParallel(settings SeasonSettings, directory string, executions
 	}
 	for range executions {
 		result := <-c
+		if result.err != nil {
+			return result.err
+		}
 		if result.score < bestSeason.score {
 			bestSeason = result
+			hasResult = true
 		}
+	}
+	if !hasResult {
+		return fmt.Errorf("no season produced")
 	}
 	log.WithFields(log.Fields{
 		"score": bestSeason.score,
@@ -75,10 +96,10 @@ func ExecutePlanerParallel(settings SeasonSettings, directory string, executions
 func executeOptimize(settings SeasonSettings, c chan seasonResult) {
 	s, err := CreateSeasonFromSettings(settings)
 	if err != nil {
-		log.Fatal("Could not create season from settings: ", err)
+		c <- seasonResult{err: err}
 		return
 	}
 	optimizer := Optimizer{Season: &s}
 	score := optimizer.Optimize()
-	c <- seasonResult{s, score}
+	c <- seasonResult{season: s, score: score}
 }
