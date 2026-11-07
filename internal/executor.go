@@ -64,10 +64,11 @@ func ExecutePlanerParallel(settings SeasonSettings, directory string, executions
 	log.WithFields(log.Fields{
 		"times": executions,
 	}).Info("Start planning multiple times")
+
 	for range executions {
 		go executeOptimize(settings, c)
 	}
-	for range executions {
+	for n := 1; n <= executions; n++ {
 		result := <-c
 		if result.err != nil {
 			return result.err
@@ -75,6 +76,17 @@ func ExecutePlanerParallel(settings SeasonSettings, directory string, executions
 		if result.score < bestSeason.score {
 			bestSeason = result
 			hasResult = true
+		}
+		step := executions / 10
+		if step < 1 {
+			step = 1
+		}
+		if n == 1 || n == executions || n%step == 0 {
+			log.WithFields(log.Fields{
+				"completed": n,
+				"total":     executions,
+				"percent":   n * 100 / executions,
+			}).Info("Planning progress")
 		}
 	}
 	if !hasResult {

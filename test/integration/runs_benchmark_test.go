@@ -1,3 +1,5 @@
+//go:build benchmark
+
 package integration
 
 import (
@@ -15,7 +17,7 @@ import (
 // doing: it reports the best/average/worst score and wall time for several
 // candidate counts. Run with:
 //
-//	go test -run TestOptimalParallelRuns -v ./test/integration/...
+//	go test -tags benchmark -run TestOptimalParallelRuns -v ./test/integration/...
 //
 // Re-run this after changing the optimizer/scoring logic to pick a new default
 // for the --times flag.
