@@ -64,7 +64,7 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 						currentMatch = possibleMatch
 						log.WithFields(log.Fields{
 							"score":    currentScore,
-							"newMatch": currentMatch.String(&o.Season.Players),
+							"newMatch": currentMatch.String(o.Season.Players),
 							"round":    i,
 							"match":    j,
 						}).Debug("Replaced a match")

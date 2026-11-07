@@ -68,11 +68,11 @@ func (m Match) getPlayers() []int {
 	return []int{m.player1}
 }
 
-func (m Match) String(players *[]Player) string {
+func (m Match) String(players []Player) string {
 	if m.isPlayer2Set {
-		return fmt.Sprintf("%s vs %s", (*players)[m.player1].Name, (*players)[m.player2].Name)
+		return fmt.Sprintf("%s vs %s", players[m.player1].Name, players[m.player2].Name)
 	}
-	return fmt.Sprintf("%s vs ...", (*players)[m.player1].Name)
+	return fmt.Sprintf("%s vs ...", players[m.player1].Name)
 }
 
 func canMatchBeAdded(matches []Match, match Match) bool {

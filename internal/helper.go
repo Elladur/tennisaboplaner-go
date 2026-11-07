@@ -17,6 +17,7 @@ func pop[T any](slice []T) ([]T, T) {
 	return slice, el
 }
 
+// shuffle mutates and returns the given slice.
 func shuffle[T any](slice []T) []T {
 	for i := range slice {
 		j := rand.Intn(i + 1)

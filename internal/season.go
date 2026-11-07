@@ -158,7 +158,7 @@ func (s *Season) changeMatch(roundIdx int, matchIdx int, newMatch Match) bool {
 	return false
 }
 
-func (s Season) checkIfRoundIsValid(roundIdx int) bool {
+func (s *Season) checkIfRoundIsValid(roundIdx int) bool {
 	players := getPlayersOfRound(s.Schedule[roundIdx])
 	if !isInSlice(roundIdx, s.fixedRounds) && len(players) != 2*s.NumberOfCourts {
 		return false
@@ -172,7 +172,7 @@ func (s Season) checkIfRoundIsValid(roundIdx int) bool {
 	return true
 }
 
-func (s Season) checkIfScheduleIsValid() bool {
+func (s *Season) checkIfScheduleIsValid() bool {
 	for i := range s.Schedule {
 		if !s.checkIfRoundIsValid(i) {
 			return false
