@@ -12,7 +12,7 @@ func getPlayersOfRound(round []Match) []int {
 	return players
 }
 
-func convertRoundToString(round []Match, players *[]Player) string {
+func convertRoundToString(round []Match, players []Player) string {
 	var result string
 	for _, m := range round {
 		result += m.String(players)

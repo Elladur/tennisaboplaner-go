@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -86,4 +87,15 @@ func TestReplacePlayer(t *testing.T) {
 	err = match.replacePlayer(5, 6)
 	assert.Equal(t, Match{3, 4, true}, match, "expected match to be {3, 4, true}")
 	assert.Error(t, err, "expected an error")
+}
+
+func TestMatchJSONRoundTrip(t *testing.T) {
+	m := createPartialMatch(7)
+	data, err := json.Marshal(m)
+	assert.NoError(t, err)
+	var got Match
+	err = json.Unmarshal(data, &got)
+	assert.NoError(t, err)
+	assert.Equal(t, m, got)
+	assert.False(t, got.isPlayer2Set)
 }

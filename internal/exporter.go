@@ -84,7 +84,7 @@ func addInitialScheduleSheet(f *excelize.File, s Season) error {
 			return err
 		}
 		for j, m := range round {
-			err = f.SetCellValue(scheduleSheet, getCell(row, j+1), m.String(&s.Players))
+			err = f.SetCellValue(scheduleSheet, getCell(row, j+1), m.String(s.Players))
 			if err != nil {
 				return err
 			}
@@ -231,7 +231,7 @@ func (s Season) exportCalendarFileForPlayer(player int, directory string) error 
 		event.SetStartAt(startDate)
 		event.SetEndAt(endDate)
 		event.SetSummary("Tennisabo")
-		event.SetDescription(convertRoundToString(s.Schedule[i], &s.Players))
+		event.SetDescription(convertRoundToString(s.Schedule[i], s.Players))
 	}
 	fileContent := cal.Serialize()
 	f, err := os.Create(filepath.Join(directory, fmt.Sprintf("%s.ics", s.Players[player].Name)))

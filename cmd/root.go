@@ -43,6 +43,8 @@ https://github.com/Elladur/tennisaboplaner-go.`,
 			log.SetLevel(log.WarnLevel)
 		case "debug":
 			log.SetLevel(log.DebugLevel)
+		default:
+			log.Fatal("invalid log level: ", logLevel)
 		}
 
 		// best-effort update check
@@ -60,20 +62,20 @@ https://github.com/Elladur/tennisaboplaner-go.`,
 		// settings param
 		content, err := os.ReadFile(cfgFile)
 		if err != nil {
-			fmt.Println(err)
-			return
+			log.Fatal(err)
 		}
 		var settings internal.SeasonSettings
 		err = json.Unmarshal(content, &settings)
 		if err != nil {
-			fmt.Println(err)
-			return
+			log.Fatal(err)
 		}
 		// output directory param
-		_, err = os.Stat(outputDirectory)
-		if err != nil {
-			if err2 := os.MkdirAll(outputDirectory, 0777); err2 != nil {
+		if _, err = os.Stat(outputDirectory); err != nil {
+			if !os.IsNotExist(err) {
 				log.Fatal(err)
+			}
+			if err2 := os.MkdirAll(outputDirectory, 0755); err2 != nil {
+				log.Fatal(err2)
 			}
 		}
 		log.WithFields(log.Fields{

@@ -6,30 +6,70 @@ import (
 	"github.com/montanaflynn/stats"
 )
 
+// scheduleStats holds aggregates computed in a single pass over the schedule,
+// so the four metric functions do not each re-scan the whole schedule.
+type scheduleStats struct {
+	playerCounts []int
+	playerRounds [][]int
+	matchCounts  [][]int
+	matchRounds  [][][]int
+}
+
+func computeScheduleStats(schedule [][]Match, players []Player) scheduleStats {
+	n := len(players)
+	s := scheduleStats{
+		playerCounts: make([]int, n),
+		playerRounds: make([][]int, n),
+		matchCounts:  make([][]int, n),
+		matchRounds:  make([][][]int, n),
+	}
+	for i := range s.matchCounts {
+		s.matchCounts[i] = make([]int, n)
+		s.matchRounds[i] = make([][]int, n)
+	}
+	for r, round := range schedule {
+		for _, m := range round {
+			if m.isPlayer2Set {
+				p1, p2 := m.player1, m.player2
+				s.playerCounts[p1]++
+				s.playerCounts[p2]++
+				s.playerRounds[p1] = append(s.playerRounds[p1], r)
+				s.playerRounds[p2] = append(s.playerRounds[p2], r)
+				s.matchCounts[p1][p2]++
+				s.matchRounds[p1][p2] = append(s.matchRounds[p1][p2], r)
+			} else {
+				p := m.player1
+				s.playerCounts[p]++
+				s.playerRounds[p] = append(s.playerRounds[p], r)
+			}
+		}
+	}
+	return s
+}
+
 // GetScore gives the value which was used to optimize the schedule
 func GetScore(schedule [][]Match, players []Player) float64 {
-	numberRounds := float64(len(schedule))
+	statsData := computeScheduleStats(schedule, players)
 
-	val1 := getStdOfPlayerTimesPlaying(schedule, players, numberRounds)
-	val2 := getStdOfPossibleMatches(schedule, players, numberRounds)
-	val3 := getStdOfPauseBetweenPlaying(schedule, players)
-	val4 := getStdOfPauseBetweenMatches(schedule, players)
+	val1 := getStdOfPlayerTimesPlayingStats(statsData, players)
+	val2 := getStdOfPossibleMatchesStats(statsData, players)
+	val3 := getStdOfPauseBetweenPlayingStats(statsData, schedule, players)
+	val4 := getStdOfPauseBetweenMatchesStats(statsData, schedule, players)
 
 	// since weight should define how often someone is playing, the number of playing is same important than all other factors combined
 	return 3*val1 + val2 + val3 + val4
 }
 
-func getStdOfPlayerTimesPlaying(schedule [][]Match, players []Player, numberRounds float64) float64 {
-	var weightedTimesPlayer []float64
+func getStdOfPlayerTimesPlayingStats(s scheduleStats, players []Player) float64 {
+	weightedTimes := make([]float64, len(players))
 	for i, p := range players {
-		val := float64(getMatchesCountOfPlayer(schedule, i)) / p.Weight
-		weightedTimesPlayer = append(weightedTimesPlayer, val)
+		weightedTimes[i] = float64(s.playerCounts[i]) / p.Weight
 	}
-	return getCoefficientOfVariation(weightedTimesPlayer)
+	return getCoefficientOfVariation(weightedTimes)
 }
 
-func getStdOfPossibleMatches(schedule [][]Match, players []Player, numberRounds float64) float64 {
-	var weightedPossibleMatches []float64
+func getStdOfPossibleMatchesStats(s scheduleStats, players []Player) float64 {
+	var weightedMatches []float64
 	for i := range players {
 		for j := i + 1; j < len(players); j++ {
 			combinedWeight := players[i].Weight + players[j].Weight
@@ -37,18 +77,17 @@ func getStdOfPossibleMatches(schedule [][]Match, players []Player, numberRounds 
 			if err != nil {
 				continue
 			}
-			val := float64(getCountOfMatchInSchedule(schedule, match)) / combinedWeight
-			weightedPossibleMatches = append(weightedPossibleMatches, val)
+			val := float64(s.matchCounts[match.player1][match.player2]) / combinedWeight
+			weightedMatches = append(weightedMatches, val)
 		}
 	}
-	return getCoefficientOfVariation(weightedPossibleMatches)
+	return getCoefficientOfVariation(weightedMatches)
 }
 
-func getStdOfPauseBetweenPlaying(schedule [][]Match, players []Player) float64 {
-	pausesBetweenPlaying := []float64{}
+func getStdOfPauseBetweenPlayingStats(s scheduleStats, schedule [][]Match, players []Player) float64 {
+	pausesBetweenPlaying := make([]float64, 0, len(players))
 	for i := range players {
-		roundsPlaying := getRoundIndizesOfPlayer(schedule, i)
-		val := calcCoefficientOfVariationOfPauses(schedule, roundsPlaying)
+		val := calcCoefficientOfVariationOfPauses(schedule, s.playerRounds[i])
 		pausesBetweenPlaying = append(pausesBetweenPlaying, val)
 	}
 	val, err := stats.Mean(pausesBetweenPlaying)
@@ -58,16 +97,15 @@ func getStdOfPauseBetweenPlaying(schedule [][]Match, players []Player) float64 {
 	return val
 }
 
-func getStdOfPauseBetweenMatches(schedule [][]Match, players []Player) float64 {
-	pausesBetweenMatches := []float64{}
+func getStdOfPauseBetweenMatchesStats(s scheduleStats, schedule [][]Match, players []Player) float64 {
+	pausesBetweenMatches := make([]float64, 0, len(players)*(len(players)-1)/2)
 	for i := range players {
 		for j := i + 1; j < len(players); j++ {
 			match, err := createMatch(i, j)
 			if err != nil {
 				continue
 			}
-			roundsPlaying := getRoundIndizesOfMatch(schedule, match)
-			val := calcCoefficientOfVariationOfPauses(schedule, roundsPlaying)
+			val := calcCoefficientOfVariationOfPauses(schedule, s.matchRounds[match.player1][match.player2])
 			pausesBetweenMatches = append(pausesBetweenMatches, val)
 		}
 	}
@@ -76,14 +114,6 @@ func getStdOfPauseBetweenMatches(schedule [][]Match, players []Player) float64 {
 		return math.MaxFloat64
 	}
 	return val
-}
-
-func calcCoefficientOfVariationOfPauses(schedule [][]Match, roundsPlaying []int) float64 {
-	if len(roundsPlaying) > 1 {
-		pauses := getPausesBetweenRounds(schedule, roundsPlaying)
-		return getCoefficientOfVariation(pauses)
-	}
-	return 1 // values are positive and have a max value, therefore Coefficient of Variation is most of the times smaller than 1
 }
 
 func getPausesBetweenRounds(schedule [][]Match, roundsPlaying []int) []float64 {
@@ -96,6 +126,14 @@ func getPausesBetweenRounds(schedule [][]Match, roundsPlaying []int) []float64 {
 		pauses = append(pauses, float64(roundsPlaying[0]))                                  // pause at start
 	}
 	return pauses
+}
+
+func calcCoefficientOfVariationOfPauses(schedule [][]Match, roundsPlaying []int) float64 {
+	if len(roundsPlaying) > 1 {
+		pauses := getPausesBetweenRounds(schedule, roundsPlaying)
+		return getCoefficientOfVariation(pauses)
+	}
+	return 1 // values are positive and have a max value, therefore Coefficient of Variation is most of the times smaller than 1
 }
 
 func getCoefficientOfVariation(input []float64) float64 {

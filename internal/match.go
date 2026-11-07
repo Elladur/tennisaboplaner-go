@@ -39,16 +39,11 @@ func (m *Match) UnmarshalJSON(data []byte) error {
 		if err != nil {
 			return err
 		}
-		m.player1 = val.player1
-		m.player2 = val.player2
-		m.isPlayer2Set = true
+		*m = val
 		return nil
 	}
 	val := createPartialMatch(match.Player1)
-	m.player1 = val.player1
-	m.player2 = val.player2
-	m.isPlayer2Set = true
-	m = &val
+	*m = val
 	return nil
 }
 
@@ -73,11 +68,11 @@ func (m Match) getPlayers() []int {
 	return []int{m.player1}
 }
 
-func (m Match) String(players *[]Player) string {
+func (m Match) String(players []Player) string {
 	if m.isPlayer2Set {
-		return fmt.Sprintf("%s vs %s", (*players)[m.player1].Name, (*players)[m.player2].Name)
+		return fmt.Sprintf("%s vs %s", players[m.player1].Name, players[m.player2].Name)
 	}
-	return fmt.Sprintf("%s vs ...", (*players)[m.player1].Name)
+	return fmt.Sprintf("%s vs ...", players[m.player1].Name)
 }
 
 func canMatchBeAdded(matches []Match, match Match) bool {
