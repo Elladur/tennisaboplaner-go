@@ -59,7 +59,7 @@ func ExecutePlanerParallel(settings SeasonSettings, directory string, executions
 	}
 	bestSeason := seasonResult{season: Season{}, score: math.MaxFloat64}
 	hasResult := false
-	c := make(chan seasonResult)
+	c := make(chan seasonResult, executions)
 
 	log.WithFields(log.Fields{
 		"times": executions,

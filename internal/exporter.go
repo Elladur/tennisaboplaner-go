@@ -19,7 +19,7 @@ const costSheet = "Cost"
 const gapStatsSheet = "GapStats"
 
 // Export the season into various files (excel & ical)
-func (s Season) Export(directory string) error {
+func (s *Season) Export(directory string) error {
 	err := s.exportExcel(directory)
 	if err != nil {
 		return err
@@ -31,7 +31,7 @@ func (s Season) Export(directory string) error {
 	return nil
 }
 
-func (s Season) exportExcel(directoy string) error {
+func (s *Season) exportExcel(directory string) error {
 	f := excelize.NewFile()
 	defer func() {
 		if err := f.Close(); err != nil {
@@ -41,31 +41,31 @@ func (s Season) exportExcel(directoy string) error {
 	}()
 
 	// initial sheet for schedule
-	if err := addInitialScheduleSheet(f, s); err != nil {
+	if err := addInitialScheduleSheet(f, *s); err != nil {
 		return err
 	}
 
 	// new sheet for oppopnent tab
-	if err := addOpponentSheet(f, s); err != nil {
+	if err := addOpponentSheet(f, *s); err != nil {
 		return err
 	}
 
 	// new sheet for matches tab
-	if err := addNumberOfMatchesSheet(f, s); err != nil {
+	if err := addNumberOfMatchesSheet(f, *s); err != nil {
 		return err
 	}
 
 	// new sheet for costs
-	if err := addCostSheet(f, s); err != nil {
+	if err := addCostSheet(f, *s); err != nil {
 		return err
 	}
 
 	// gap stats
-	if err := addGapStatsSheet(f, s); err != nil {
+	if err := addGapStatsSheet(f, *s); err != nil {
 		return err
 	}
 
-	if err := f.SaveAs(filepath.Join(directoy, "schedule.xlsx")); err != nil {
+	if err := f.SaveAs(filepath.Join(directory, "schedule.xlsx")); err != nil {
 		return err
 	}
 	return nil
@@ -271,7 +271,11 @@ func addGapStatsSheet(f *excelize.File, s Season) error {
 
 // calculates excel column of a zero-based-index
 func getColName(index int) string {
-	return string(rune('A' + index))
+	name, err := excelize.ColumnNumberToName(index + 1)
+	if err != nil {
+		return string(rune('A' + index))
+	}
+	return name
 }
 
 // calculates cell of zero-based indizes
@@ -280,7 +284,7 @@ func getCell(i, j int) string {
 	return fmt.Sprintf("%s%d", col, i+1)
 }
 
-func (s Season) exportCalendarFiles(directory string) error {
+func (s *Season) exportCalendarFiles(directory string) error {
 	for i := range s.Players {
 		if err := s.exportCalendarFileForPlayer(i, directory); err != nil {
 			return err
@@ -289,7 +293,7 @@ func (s Season) exportCalendarFiles(directory string) error {
 	return nil
 }
 
-func (s Season) exportCalendarFileForPlayer(player int, directory string) error {
+func (s *Season) exportCalendarFileForPlayer(player int, directory string) error {
 	cal := ics.NewCalendar()
 	cal.SetMethod(ics.MethodRequest)
 	for _, i := range getRoundIndizesOfPlayer(s.Schedule, player) {
