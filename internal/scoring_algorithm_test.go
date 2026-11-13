@@ -14,8 +14,8 @@ func getPlayers() []Player {
 	}
 }
 
-func getScheduleWithOnePlayerNotPlaying() [][]Match {
-	return [][]Match{
+func getScheduleWithOnePlayerNotPlaying() Schedule {
+	return Schedule{
 		{{player1: 0, player2: 1, isPlayer2Set: true}},
 		{{player1: 0, player2: 1, isPlayer2Set: true}},
 		{{player1: 0, player2: 1, isPlayer2Set: true}},
@@ -26,8 +26,8 @@ func getScheduleWithOnePlayerNotPlaying() [][]Match {
 	}
 }
 
-func getEvenSchedule() [][]Match {
-	return [][]Match{
+func getEvenSchedule() Schedule {
+	return Schedule{
 		{{player1: 0, player2: 1, isPlayer2Set: true}},
 		{{player1: 1, player2: 2, isPlayer2Set: true}},
 		{{player1: 0, player2: 2, isPlayer2Set: true}},
@@ -38,8 +38,8 @@ func getEvenSchedule() [][]Match {
 	}
 }
 
-func getBlockSchedule() [][]Match {
-	return [][]Match{
+func getBlockSchedule() Schedule {
+	return Schedule{
 		{{player1: 0, player2: 1, isPlayer2Set: true}},
 		{{player1: 0, player2: 1, isPlayer2Set: true}},
 		{{player1: 0, player2: 2, isPlayer2Set: true}},
@@ -50,8 +50,8 @@ func getBlockSchedule() [][]Match {
 	}
 }
 
-func getBalancedSchedule() [][]Match {
-	return [][]Match{
+func getBalancedSchedule() Schedule {
+	return Schedule{
 		{{player1: 0, player2: 1, isPlayer2Set: true}},
 		{{player1: 0, player2: 2, isPlayer2Set: true}},
 		{{player1: 1, player2: 2, isPlayer2Set: true}},
@@ -62,7 +62,7 @@ func getBalancedSchedule() [][]Match {
 	}
 }
 
-func helperTestAssertion(t *testing.T, betterSchedule [][]Match, worseSchedule [][]Match, players []Player) {
+func helperTestAssertion(t *testing.T, betterSchedule Schedule, worseSchedule Schedule, players []Player) {
 	betterStats := computeScheduleStats(betterSchedule, players)
 	worseStats := computeScheduleStats(worseSchedule, players)
 
@@ -185,7 +185,7 @@ func TestIncrementalScoreEqualsFull(t *testing.T) {
 
 func TestConsecutivePlayDroughtPenalty(t *testing.T) {
 	// player plays rounds 0,1,2 -> consecutive penalties
-	schedule := [][]Match{
+	schedule := Schedule{
 		{{player1: 0, player2: 1, isPlayer2Set: true}},
 		{{player1: 0, player2: 1, isPlayer2Set: true}},
 		{{player1: 0, player2: 1, isPlayer2Set: true}},

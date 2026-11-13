@@ -18,7 +18,7 @@ type Season struct {
 	ExcludedDates  []time.Time
 	dates          []time.Time
 	partialRounds  []int
-	Schedule       [][]Match
+	Schedule       Schedule
 	location       time.Location
 }
 
@@ -103,7 +103,7 @@ func generateDates(start time.Time, end time.Time, excludedDates []time.Time) []
 // CreateSchedule createas new schedule for this season.
 // This is done with some randomness, such that optimization has a different starting point.
 func (s *Season) CreateSchedule() {
-	s.Schedule = [][]Match{}
+	s.Schedule = Schedule{}
 	for i := range s.dates {
 		r, partial := s.createRound(i)
 		s.Schedule = append(s.Schedule, r)

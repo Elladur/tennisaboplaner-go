@@ -167,7 +167,7 @@ func (o *Optimizer) optimizeBySwappingMatches() int {
 	return swaps
 }
 
-func getIndexCombinations(schedule [][]Match) [][4]int {
+func getIndexCombinations(schedule Schedule) [][4]int {
 	var indizes [][2]int
 	var indexCombinations [][4]int
 	for i, round := range schedule {

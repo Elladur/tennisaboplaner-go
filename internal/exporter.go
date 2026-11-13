@@ -160,7 +160,7 @@ func addNumberOfMatchesSheet(f *excelize.File, s Season) error {
 			if err != nil {
 				return err
 			}
-			getnumMatches := float64(len(getRoundIndizesOfMatch(s.Schedule, match)))
+			getnumMatches := float64(len(s.Schedule.RoundIndizesOfMatch(match)))
 			if err := f.SetCellValue(numberOfMatchesSheet, getCell(j+1, i+1), getnumMatches); err != nil {
 				return err
 			}
@@ -190,7 +190,7 @@ func addCostSheet(f *excelize.File, s Season) error {
 		return err
 	}
 	for i, p := range s.Players {
-		timesPlaying := float64(len(getRoundIndizesOfPlayer(s.Schedule, i)))
+		timesPlaying := float64(len(s.Schedule.RoundIndizesOfPlayer(i)))
 		if err := f.SetCellValue(costSheet, getCell(0, i+1), p.Name); err != nil {
 			return err
 		}
@@ -232,7 +232,7 @@ func addGapStatsSheet(f *excelize.File, s Season) error {
 		}
 	}
 	for i := range s.Players {
-		rounds := getRoundIndizesOfPlayer(s.Schedule, i)
+		rounds := s.Schedule.RoundIndizesOfPlayer(i)
 		gaps := gapLengths(len(s.Schedule), rounds)
 		if err := f.SetCellValue(gapStatsSheet, getCell(i+1, 0), s.Players[i].Name); err != nil {
 			return err
@@ -296,7 +296,7 @@ func (s *Season) exportCalendarFiles(directory string) error {
 func (s *Season) exportCalendarFileForPlayer(player int, directory string) error {
 	cal := ics.NewCalendar()
 	cal.SetMethod(ics.MethodRequest)
-	for _, i := range getRoundIndizesOfPlayer(s.Schedule, player) {
+	for _, i := range s.Schedule.RoundIndizesOfPlayer(player) {
 		date := s.dates[i]
 		event := cal.AddEvent(fmt.Sprintf("Tennisabo %s", date.Format(time.DateOnly)))
 		event.SetCreatedTime(time.Now())

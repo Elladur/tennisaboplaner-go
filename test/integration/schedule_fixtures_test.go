@@ -11,9 +11,9 @@ import (
 )
 
 type scheduleFixture struct {
-	Players  []internal.Player  `json:"players"`
-	Schedule [][]internal.Match `json:"schedule"`
-	Score    float64            `json:"score"`
+	Players  []internal.Player `json:"players"`
+	Schedule internal.Schedule `json:"schedule"`
+	Score    float64           `json:"score"`
 }
 
 func loadScheduleFixture(t *testing.T, path string) scheduleFixture {

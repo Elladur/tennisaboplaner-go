@@ -8,7 +8,7 @@ import (
 
 func TestRoundIndizesOfPlayer(t *testing.T) {
 	player := 1
-	schedule := [][]Match{
+	schedule := Schedule{
 		{
 			{player1: 1, isPlayer2Set: true, player2: 2},
 			{player1: 3, isPlayer2Set: true, player2: 4},
@@ -24,16 +24,16 @@ func TestRoundIndizesOfPlayer(t *testing.T) {
 	}
 
 	expected := []int{0, 2}
-	result := getRoundIndizesOfPlayer(schedule, player)
+	result := schedule.RoundIndizesOfPlayer(player)
 	assert.Equal(t, expected, result)
 
-	result = getRoundIndizesOfPlayer(schedule, 10)
+	result = schedule.RoundIndizesOfPlayer(10)
 	assert.Empty(t, result)
 }
 
 func TestGetMatchesCountOfPlayer(t *testing.T) {
 	player := 1
-	schedule := [][]Match{
+	schedule := Schedule{
 		{
 			{player1: 1, isPlayer2Set: true, player2: 2},
 			{player1: 3, isPlayer2Set: true, player2: 4},
@@ -48,16 +48,16 @@ func TestGetMatchesCountOfPlayer(t *testing.T) {
 		},
 	}
 
-	result := getMatchesCountOfPlayer(schedule, player)
+	result := schedule.MatchesCountOfPlayer(player)
 	assert.Equal(t, 2, result)
 
-	result = getMatchesCountOfPlayer(schedule, 10)
+	result = schedule.MatchesCountOfPlayer(10)
 	assert.Equal(t, 0, result)
 }
 
 func TestGetRoundIndizesOfMatch(t *testing.T) {
 	match := Match{player1: 1, isPlayer2Set: true, player2: 2}
-	schedule := [][]Match{
+	schedule := Schedule{
 		{
 			{player1: 1, isPlayer2Set: true, player2: 2},
 			{player1: 3, isPlayer2Set: true, player2: 4},
@@ -73,16 +73,16 @@ func TestGetRoundIndizesOfMatch(t *testing.T) {
 	}
 
 	expected := []int{0, 2}
-	result := getRoundIndizesOfMatch(schedule, match)
+	result := schedule.RoundIndizesOfMatch(match)
 	assert.Equal(t, expected, result)
 
-	result = getRoundIndizesOfMatch(schedule, Match{player1: 10})
+	result = schedule.RoundIndizesOfMatch(Match{player1: 10})
 	assert.Empty(t, result)
 }
 
 func TestGetCountMatchInSchedule(t *testing.T) {
 	match := Match{player1: 1, isPlayer2Set: true, player2: 2}
-	schedule := [][]Match{
+	schedule := Schedule{
 		{
 			{player1: 1, isPlayer2Set: true, player2: 2},
 			{player1: 3, isPlayer2Set: true, player2: 4},
@@ -97,9 +97,9 @@ func TestGetCountMatchInSchedule(t *testing.T) {
 		},
 	}
 
-	result := getCountOfMatchInSchedule(schedule, match)
+	result := schedule.CountOfMatch(match)
 	assert.Equal(t, 2, result)
 
-	result = getCountOfMatchInSchedule(schedule, Match{player1: 10})
+	result = schedule.CountOfMatch(Match{player1: 10})
 	assert.Empty(t, 0, result)
 }

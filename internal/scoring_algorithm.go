@@ -15,7 +15,7 @@ type scheduleStats struct {
 	matchRounds  [][][]int
 }
 
-func computeScheduleStats(schedule [][]Match, players []Player) scheduleStats {
+func computeScheduleStats(schedule Schedule, players []Player) scheduleStats {
 	n := len(players)
 	s := scheduleStats{
 		playerCounts: make([]int, n),
@@ -123,17 +123,17 @@ func normalizeWeights(w scoreWeights) scoreWeights {
 	}
 	return w
 }
-func GetScore(schedule [][]Match, players []Player) float64 {
+func GetScore(schedule Schedule, players []Player) float64 {
 	return getScoreWithWeights(schedule, players, defaultScoreWeights())
 }
 
 // getScoreWithWeights is like GetScore but uses the provided weights.
-func getScoreWithWeights(schedule [][]Match, players []Player, weights scoreWeights) float64 {
+func getScoreWithWeights(schedule Schedule, players []Player, weights scoreWeights) float64 {
 	statsData := computeScheduleStats(schedule, players)
 	return getScoreFromStats(statsData, schedule, players, weights)
 }
 
-func getScoreFromStats(statsData scheduleStats, schedule [][]Match, players []Player, weights scoreWeights) float64 {
+func getScoreFromStats(statsData scheduleStats, schedule Schedule, players []Player, weights scoreWeights) float64 {
 	weights = normalizeWeights(weights)
 	val1 := getStdOfPlayerTimesPlayingStats(statsData, players)
 	val2 := getStdOfPossibleMatchesStats(statsData, players)
@@ -168,7 +168,7 @@ func getStdOfPossibleMatchesStats(s scheduleStats, players []Player) float64 {
 	return getCoefficientOfVariation(weightedMatches)
 }
 
-func getStdOfPauseBetweenPlayingStats(s scheduleStats, schedule [][]Match, players []Player) float64 {
+func getStdOfPauseBetweenPlayingStats(s scheduleStats, schedule Schedule, players []Player) float64 {
 	pausesBetweenPlaying := make([]float64, 0, len(players))
 	for i := range players {
 		val := calcCoefficientOfVariationOfPauses(schedule, s.playerRounds[i])
@@ -181,7 +181,7 @@ func getStdOfPauseBetweenPlayingStats(s scheduleStats, schedule [][]Match, playe
 	return val
 }
 
-func getStdOfPauseBetweenMatchesStats(s scheduleStats, schedule [][]Match, players []Player) float64 {
+func getStdOfPauseBetweenMatchesStats(s scheduleStats, schedule Schedule, players []Player) float64 {
 	pausesBetweenMatches := make([]float64, 0, len(players)*(len(players)-1)/2)
 	for i := range players {
 		for j := i + 1; j < len(players); j++ {
@@ -200,7 +200,7 @@ func getStdOfPauseBetweenMatchesStats(s scheduleStats, schedule [][]Match, playe
 	return val
 }
 
-func getPausesBetweenRounds(schedule [][]Match, roundsPlaying []int) []float64 {
+func getPausesBetweenRounds(schedule Schedule, roundsPlaying []int) []float64 {
 	pauses := make([]float64, 0, 16)
 	if len(roundsPlaying) > 1 {
 		for j := 0; j < len(roundsPlaying)-1; j++ {
@@ -212,7 +212,7 @@ func getPausesBetweenRounds(schedule [][]Match, roundsPlaying []int) []float64 {
 	return pauses
 }
 
-func calcCoefficientOfVariationOfPauses(schedule [][]Match, roundsPlaying []int) float64 {
+func calcCoefficientOfVariationOfPauses(schedule Schedule, roundsPlaying []int) float64 {
 	if len(roundsPlaying) > 1 {
 		pauses := getPausesBetweenRounds(schedule, roundsPlaying)
 		return getCoefficientOfVariation(pauses)
@@ -231,7 +231,7 @@ func getCoefficientOfVariation(input []float64) float64 {
 
 // getConsecutivePlayDroughtPenalty penalizes (a) consecutive playing rounds
 // and (b) gaps above a threshold between playing rounds, summed over players.
-func getConsecutivePlayDroughtPenalty(stats scheduleStats, schedule [][]Match) float64 {
+func getConsecutivePlayDroughtPenalty(stats scheduleStats, schedule Schedule) float64 {
 	if len(schedule) == 0 || len(stats.playerRounds) == 0 {
 		return 0
 	}
