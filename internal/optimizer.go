@@ -35,14 +35,13 @@ func (o *Optimizer) Optimize() float64 {
 
 func (o *Optimizer) optimizeBySwappingPlayers() int {
 	swaps := 0
-	currentScore := GetScore(o.Season.Schedule, o.Season.Players)
+	weights := defaultScoreWeights()
+	stats := computeScheduleStats(o.Season.Schedule, o.Season.Players)
+	currentScore := getScoreFromStats(stats, o.Season.Schedule, o.Season.Players, weights)
 	var newScore float64
 
 	log.Debug("Start replacing matches")
 	for i, round := range o.Season.Schedule {
-		if isInSlice(i, o.Season.fixedRounds) {
-			continue
-		}
 		for j, currentMatch := range round {
 			for p := range o.Season.Players {
 				for q := p + 1; q < len(o.Season.Players); q++ {
@@ -57,7 +56,9 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 					if !changed {
 						continue
 					}
-					newScore = GetScore(o.Season.Schedule, o.Season.Players)
+					stats.removeMatch(currentMatch, i)
+					stats.addMatch(possibleMatch, i)
+					newScore = getScoreFromStats(stats, o.Season.Schedule, o.Season.Players, weights)
 					if newScore < currentScore {
 						swaps++
 						currentScore = newScore
@@ -69,6 +70,8 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 							"match":    j,
 						}).Debug("Replaced a match")
 					} else {
+						stats.removeMatch(possibleMatch, i)
+						stats.addMatch(currentMatch, i)
 						o.Season.changeMatch(i, j, currentMatch)
 					}
 				}
@@ -77,13 +80,12 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 	}
 	log.Debug("finished replacing matches")
 
-	currentScore = GetScore(o.Season.Schedule, o.Season.Players)
+	// swapPlayersOfRound is a structural change; recompute for correctness.
+	stats = computeScheduleStats(o.Season.Schedule, o.Season.Players)
+	currentScore = getScoreFromStats(stats, o.Season.Schedule, o.Season.Players, weights)
 
 	log.Debug("Start switching scheduled player of existing round")
 	for i, round := range o.Season.Schedule {
-		if isInSlice(i, o.Season.fixedRounds) {
-			continue
-		}
 		playerOfRound := getPlayersOfRound(round)
 		for j, p := range playerOfRound {
 			for k := j + 1; k < len(playerOfRound); k++ {
@@ -95,6 +97,7 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 				newScore = GetScore(o.Season.Schedule, o.Season.Players)
 				if newScore < currentScore {
 					swaps++
+					stats = computeScheduleStats(o.Season.Schedule, o.Season.Players)
 					currentScore = newScore
 					log.WithFields(log.Fields{
 						"score":   currentScore,
@@ -116,23 +119,31 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 
 func (o *Optimizer) optimizeBySwappingMatches() int {
 	swaps := 0
-	currentScore := GetScore(o.Season.Schedule, o.Season.Players)
+	weights := defaultScoreWeights()
+	stats := computeScheduleStats(o.Season.Schedule, o.Season.Players)
+	currentScore := getScoreFromStats(stats, o.Season.Schedule, o.Season.Players, weights)
 	indexCombinations := getIndexCombinations(o.Season.Schedule)
 
-	log.Debug("Finished swapping existing matches")
+	log.Debug("Start swapping existing matches")
 	for _, combination := range indexCombinations {
 		roundIdx1 := combination[0]
 		matchIdx1 := combination[1]
 		roundIdx2 := combination[2]
 		matchIdx2 := combination[3]
-		if isInSlice(roundIdx1, o.Season.fixedRounds) || isInSlice(roundIdx2, o.Season.fixedRounds) || o.Season.Schedule[roundIdx1][matchIdx1] == o.Season.Schedule[roundIdx2][matchIdx2] {
+		if o.Season.Schedule[roundIdx1][matchIdx1] == o.Season.Schedule[roundIdx2][matchIdx2] {
 			continue
 		}
+		oldMatch1 := o.Season.Schedule[roundIdx1][matchIdx1]
+		oldMatch2 := o.Season.Schedule[roundIdx2][matchIdx2]
 		swapped := o.Season.swapMatches(roundIdx1, matchIdx1, roundIdx2, matchIdx2)
 		if !swapped {
 			continue
 		}
-		newScore := GetScore(o.Season.Schedule, o.Season.Players)
+		stats.removeMatch(oldMatch1, roundIdx1)
+		stats.removeMatch(oldMatch2, roundIdx2)
+		stats.addMatch(oldMatch2, roundIdx1)
+		stats.addMatch(oldMatch1, roundIdx2)
+		newScore := getScoreFromStats(stats, o.Season.Schedule, o.Season.Players, weights)
 		if newScore < currentScore {
 			swaps++
 			currentScore = newScore
@@ -144,6 +155,10 @@ func (o *Optimizer) optimizeBySwappingMatches() int {
 				"match2": matchIdx2,
 			}).Debug("swapped matches")
 		} else {
+			stats.removeMatch(oldMatch2, roundIdx1)
+			stats.removeMatch(oldMatch1, roundIdx2)
+			stats.addMatch(oldMatch1, roundIdx1)
+			stats.addMatch(oldMatch2, roundIdx2)
 			o.Season.swapMatches(roundIdx1, matchIdx1, roundIdx2, matchIdx2)
 		}
 	}

@@ -29,36 +29,78 @@ func computeScheduleStats(schedule [][]Match, players []Player) scheduleStats {
 	}
 	for r, round := range schedule {
 		for _, m := range round {
-			if m.isPlayer2Set {
-				p1, p2 := m.player1, m.player2
-				s.playerCounts[p1]++
-				s.playerCounts[p2]++
-				s.playerRounds[p1] = append(s.playerRounds[p1], r)
-				s.playerRounds[p2] = append(s.playerRounds[p2], r)
-				s.matchCounts[p1][p2]++
-				s.matchRounds[p1][p2] = append(s.matchRounds[p1][p2], r)
-			} else {
-				p := m.player1
-				s.playerCounts[p]++
-				s.playerRounds[p] = append(s.playerRounds[p], r)
-			}
+			s.addMatch(m, r)
 		}
 	}
 	return s
 }
 
+func insertSorted(rounds []int, round int) []int {
+	for i, v := range rounds {
+		if round < v {
+			rounds = append(rounds, 0)
+			copy(rounds[i+1:], rounds[i:])
+			rounds[i] = round
+			return rounds
+		}
+	}
+	return append(rounds, round)
+}
+
+func (s *scheduleStats) addMatch(m Match, round int) {
+	if m.isPlayer2Set {
+		p1, p2 := m.player1, m.player2
+		s.playerCounts[p1]++
+		s.playerCounts[p2]++
+		s.playerRounds[p1] = insertSorted(s.playerRounds[p1], round)
+		s.playerRounds[p2] = insertSorted(s.playerRounds[p2], round)
+		s.matchCounts[p1][p2]++
+		s.matchRounds[p1][p2] = insertSorted(s.matchRounds[p1][p2], round)
+	} else {
+		p := m.player1
+		s.playerCounts[p]++
+		s.playerRounds[p] = insertSorted(s.playerRounds[p], round)
+	}
+}
+
+func removeRoundIndex(rounds []int, round int) []int {
+	for i, v := range rounds {
+		if v == round {
+			return append(rounds[:i], rounds[i+1:]...)
+		}
+	}
+	return rounds
+}
+
+func (s *scheduleStats) removeMatch(m Match, round int) {
+	if m.isPlayer2Set {
+		p1, p2 := m.player1, m.player2
+		s.playerCounts[p1]--
+		s.playerCounts[p2]--
+		s.playerRounds[p1] = removeRoundIndex(s.playerRounds[p1], round)
+		s.playerRounds[p2] = removeRoundIndex(s.playerRounds[p2], round)
+		s.matchCounts[p1][p2]--
+		s.matchRounds[p1][p2] = removeRoundIndex(s.matchRounds[p1][p2], round)
+	} else {
+		p := m.player1
+		s.playerCounts[p]--
+		s.playerRounds[p] = removeRoundIndex(s.playerRounds[p], round)
+	}
+}
+
 // scoreWeights controls the relative importance of the four scoring components.
 type scoreWeights struct {
-	PlayTime   float64 `json:"PlayTime"`
-	Matchup    float64 `json:"Matchup"`
-	PausePlay  float64 `json:"PausePlay"`
-	PauseMatch float64 `json:"PauseMatch"`
+	PlayTime    float64 `json:"PlayTime"`
+	Matchup     float64 `json:"Matchup"`
+	PausePlay   float64 `json:"PausePlay"`
+	PauseMatch  float64 `json:"PauseMatch"`
+	Consecutive float64 `json:"Consecutive"`
 }
 
 // defaultScoreWeights returns the default weights (play time dominant, matchup
 // slightly above pause regularity).
 func defaultScoreWeights() scoreWeights {
-	return scoreWeights{PlayTime: 3, Matchup: 1.5, PausePlay: 1, PauseMatch: 1}
+	return scoreWeights{PlayTime: 3, Matchup: 1.5, PausePlay: 1, PauseMatch: 1, Consecutive: 1}
 }
 
 // normalizeWeights replaces zero (unset) values with defaults.
@@ -76,6 +118,9 @@ func normalizeWeights(w scoreWeights) scoreWeights {
 	if w.PauseMatch <= 0 {
 		w.PauseMatch = d.PauseMatch
 	}
+	if w.Consecutive <= 0 {
+		w.Consecutive = d.Consecutive
+	}
 	return w
 }
 func GetScore(schedule [][]Match, players []Player) float64 {
@@ -84,15 +129,19 @@ func GetScore(schedule [][]Match, players []Player) float64 {
 
 // getScoreWithWeights is like GetScore but uses the provided weights.
 func getScoreWithWeights(schedule [][]Match, players []Player, weights scoreWeights) float64 {
-	weights = normalizeWeights(weights)
 	statsData := computeScheduleStats(schedule, players)
+	return getScoreFromStats(statsData, schedule, players, weights)
+}
 
+func getScoreFromStats(statsData scheduleStats, schedule [][]Match, players []Player, weights scoreWeights) float64 {
+	weights = normalizeWeights(weights)
 	val1 := getStdOfPlayerTimesPlayingStats(statsData, players)
 	val2 := getStdOfPossibleMatchesStats(statsData, players)
 	val3 := getStdOfPauseBetweenPlayingStats(statsData, schedule, players)
 	val4 := getStdOfPauseBetweenMatchesStats(statsData, schedule, players)
+	val5 := getConsecutivePlayDroughtPenalty(statsData, schedule)
 
-	return weights.PlayTime*val1 + weights.Matchup*val2 + weights.PausePlay*val3 + weights.PauseMatch*val4
+	return weights.PlayTime*val1 + weights.Matchup*val2 + weights.PausePlay*val3 + weights.PauseMatch*val4 + weights.Consecutive*val5
 }
 
 func getStdOfPlayerTimesPlayingStats(s scheduleStats, players []Player) float64 {
@@ -178,4 +227,26 @@ func getCoefficientOfVariation(input []float64) float64 {
 		return math.MaxFloat64
 	}
 	return std / mean
+}
+
+// getConsecutivePlayDroughtPenalty penalizes (a) consecutive playing rounds
+// and (b) gaps above a threshold between playing rounds, summed over players.
+func getConsecutivePlayDroughtPenalty(stats scheduleStats, schedule [][]Match) float64 {
+	if len(schedule) == 0 || len(stats.playerRounds) == 0 {
+		return 0
+	}
+	const gapThreshold = 3
+	total := 0
+	for _, rounds := range stats.playerRounds {
+		for j := 1; j < len(rounds); j++ {
+			diff := rounds[j] - rounds[j-1]
+			if diff == 1 {
+				total++ // consecutive play
+			}
+			if diff > gapThreshold {
+				total++ // drought
+			}
+		}
+	}
+	return float64(total) / float64(len(stats.playerRounds)*len(schedule))
 }

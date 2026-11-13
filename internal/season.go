@@ -183,9 +183,6 @@ func (s *Season) getPossiblePlayers(index int) []int {
 }
 
 func (s *Season) changeMatch(roundIdx int, matchIdx int, newMatch Match) bool {
-	if isInSlice(roundIdx, s.fixedRounds) {
-		return false
-	}
 	oldMatch := s.Schedule[roundIdx][matchIdx]
 	s.Schedule[roundIdx][matchIdx] = newMatch
 	if s.checkIfRoundIsValid(roundIdx) {
@@ -196,15 +193,35 @@ func (s *Season) changeMatch(roundIdx int, matchIdx int, newMatch Match) bool {
 }
 
 func (s *Season) checkIfRoundIsValid(roundIdx int) bool {
-	players := getPlayersOfRound(s.Schedule[roundIdx])
-	if !isInSlice(roundIdx, s.fixedRounds) && len(players) != 2*s.NumberOfCourts {
+	round := s.Schedule[roundIdx]
+	players := getPlayersOfRound(round)
+	// distinct players: number of unique players must equal total slots
+	slots := 0
+	for _, m := range round {
+		slots += len(m.getPlayers())
+	}
+	if len(players) != slots {
 		return false
 	}
-	date := s.dates[roundIdx]
+	// possible already excludes players who cannot play on this date.
+	possible := s.getPossiblePlayers(roundIdx)
 	for _, idx := range players {
-		if isInSlice(date, s.Players[idx].CannotPlay) {
+		if !isInSlice(idx, possible) {
 			return false
 		}
+	}
+	if isInSlice(roundIdx, s.fixedRounds) {
+		// fixed/partial round: filled as much as possible — match count equals
+		// ceil(availablePlayers/2) capped by courts.
+		maxMatches := (len(possible) + 1) / 2
+		if maxMatches > s.NumberOfCourts {
+			maxMatches = s.NumberOfCourts
+		}
+		if len(round) != maxMatches {
+			return false
+		}
+	} else if len(players) != 2*s.NumberOfCourts {
+		return false
 	}
 	return true
 }
@@ -256,9 +273,6 @@ func (s *Season) swapPlayersOfRound(roundIdx int, player1 int, player2 int) bool
 }
 
 func (s *Season) swapMatches(round1 int, match1 int, round2 int, match2 int) bool {
-	if isInSlice(round1, s.fixedRounds) || isInSlice(round2, s.fixedRounds) {
-		return false
-	}
 	oldMatch1 := s.Schedule[round1][match1]
 	oldMatch2 := s.Schedule[round2][match2]
 	s.Schedule[round1][match1] = oldMatch2
