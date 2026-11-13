@@ -109,8 +109,8 @@ func TestChangeMatch(t *testing.T) {
 	assert.False(t, success)
 	assert.NotEqual(t, invalidMatch, season.Schedule[0][0])
 
-	// Test changing match in a fixed round
-	season.fixedRounds = append(season.fixedRounds, 0)
+	// Test changing match in a partial round
+	season.partialRounds = append(season.partialRounds, 0)
 	success = season.changeMatch(0, 0, newMatch)
 	assert.False(t, success)
 }
@@ -159,8 +159,8 @@ func TestSwapMatches(t *testing.T) {
 	assert.Equal(t, season.Schedule[1][1], oldMatch2)
 
 	// B3: fixed/partial rounds are mutable when validity holds.
-	season.fixedRounds = append(season.fixedRounds, 1)
-	// swap back to verify it's allowed on a fixed round
+	season.partialRounds = append(season.partialRounds, 1)
+	// swap back to verify it's allowed on a partial round
 	oldM1 := season.Schedule[1][0]
 	oldM2 := season.Schedule[2][1]
 	success = season.swapMatches(1, 0, 2, 1)
@@ -169,7 +169,7 @@ func TestSwapMatches(t *testing.T) {
 	assert.Equal(t, oldM1, season.Schedule[2][1])
 
 	// still rejected if it breaks availability/validity (player 4 can't play round 0)
-	season.fixedRounds = append(season.fixedRounds, 0)
+	season.partialRounds = append(season.partialRounds, 0)
 	p4match, _ := createMatch(3, 4)
 	ok := season.changeMatch(0, 0, p4match)
 	assert.False(t, ok)
@@ -227,7 +227,7 @@ func TestReplaceRound(t *testing.T) {
 	assert.NotEqual(t, resultMatch, oldRound)
 	assert.Equal(t, oldRound, season.Schedule[0])
 
-	season.fixedRounds = append(season.fixedRounds, 0)
+	season.partialRounds = append(season.partialRounds, 0)
 	resultMatch, swapped = season.replaceRound(0, oldRound)
 	assert.False(t, swapped)
 	assert.Equal(t, []Match(nil), resultMatch)
@@ -269,11 +269,11 @@ func TestPartialRoundMutabilityB3(t *testing.T) {
 	start := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
 	end := time.Date(2023, 1, 15, 12, 0, 0, 0, time.UTC)
 	season := createSeason(players, start, end, 2, "T", 0, nil, *time.UTC)
-	// round 0: P4 unavailable => partial/fixed
-	assert.True(t, isInSlice(0, season.fixedRounds))
+	// round 0: P4 unavailable => partial round
+	assert.True(t, isInSlice(0, season.partialRounds))
 	assert.True(t, season.checkIfRoundIsValid(0))
 
-	// change a match in partial fixed round with a valid replacement
+	// change a match in partial round with a valid replacement
 	if len(season.Schedule[0]) > 0 {
 		old := season.Schedule[0][0]
 		repl, err := createMatch(0, 1)
@@ -296,10 +296,10 @@ func TestPartialRoundMutabilityB3(t *testing.T) {
 		assert.True(t, season2.checkIfRoundIsValid(0))
 	}
 
-	// swapMatches across partial fixed round allowed when valid
+	// swapMatches across partial round allowed when valid
 	season3 := createSeason(players, start, end, 2, "T", 0, nil, *time.UTC)
-	if len(season3.fixedRounds) > 0 && len(season3.Schedule) > 1 && len(season3.Schedule[0]) > 0 && len(season3.Schedule[1]) > 0 {
-		rf := season3.fixedRounds[0]
+	if len(season3.partialRounds) > 0 && len(season3.Schedule) > 1 && len(season3.Schedule[0]) > 0 && len(season3.Schedule[1]) > 0 {
+		rf := season3.partialRounds[0]
 		rn := 1
 		if rn == rf {
 			rn = 2

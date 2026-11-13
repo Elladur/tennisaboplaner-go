@@ -17,7 +17,7 @@ type Season struct {
 	OverallCosts   float64
 	ExcludedDates  []time.Time
 	dates          []time.Time
-	fixedRounds    []int
+	partialRounds  []int
 	Schedule       [][]Match
 	location       time.Location
 }
@@ -108,7 +108,7 @@ func (s *Season) CreateSchedule() {
 		r, partial := s.createRound(i)
 		s.Schedule = append(s.Schedule, r)
 		if partial {
-			s.fixedRounds = append(s.fixedRounds, i)
+			s.partialRounds = append(s.partialRounds, i)
 		}
 	}
 }
@@ -210,8 +210,8 @@ func (s *Season) checkIfRoundIsValid(roundIdx int) bool {
 			return false
 		}
 	}
-	if isInSlice(roundIdx, s.fixedRounds) {
-		// fixed/partial round: filled as much as possible — match count equals
+	if isInSlice(roundIdx, s.partialRounds) {
+		// partial round: filled as much as possible — match count equals
 		// ceil(availablePlayers/2) capped by courts.
 		maxMatches := (len(possible) + 1) / 2
 		if maxMatches > s.NumberOfCourts {
@@ -286,7 +286,7 @@ func (s *Season) swapMatches(round1 int, match1 int, round2 int, match2 int) boo
 }
 
 func (s *Season) replaceRound(index int, round []Match) ([]Match, bool) {
-	if isInSlice(index, s.fixedRounds) {
+	if isInSlice(index, s.partialRounds) {
 		return nil, false
 	}
 	oldRound := s.Schedule[index]

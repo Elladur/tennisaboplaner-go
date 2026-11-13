@@ -50,7 +50,7 @@ CLI flags (defined in `cmd/root.go`): `--config` (default `settings.json`), `--l
 - Shared test fixtures: `setupTestSeason()`, `setupStaticTestSeason()` in `season_test.go`.
 - Keep player indices as `int` (0-based) in `Match`/schedule; `Player` slice index == player id.
 - `Match.player1` is always the lower ID; use `createMatch` to enforce ordering.
-- Mutating fields on `Season` (e.g. `dates`, `fixedRounds`) are unexported; construct via `CreateSeasonFromSettings`/`createSeason`.
+- Mutating fields on `Season` (e.g. `dates`, `partialRounds`) are unexported; construct via `CreateSeasonFromSettings`/`createSeason`.
 - Logging via logrus; level controlled by `--level`.
 - Output dir and `output/` are gitignored; don't commit generated files.
 - Add unit tests and integration tests for new or changed behavior whenever feasible; keep them co-located with the code (`internal/*_test.go`, `test/integration/`).
