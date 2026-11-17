@@ -123,6 +123,19 @@ func PerformUpdate(ctx context.Context) (UpdateInfo, error) {
 	return info, nil
 }
 
+// isSafeArchivePath reports whether an archive entry name does not escape
+// the destination directory.
+func isSafeArchivePath(name string) bool {
+	if filepath.IsAbs(name) {
+		return false
+	}
+	cleaned := filepath.Clean(name)
+	if cleaned == ".." || strings.HasPrefix(cleaned, ".."+string(filepath.Separator)) {
+		return false
+	}
+	return true
+}
+
 // isBinaryCandidate reports whether name looks like the shipped executable
 // rather than an auxiliary file (LICENSE, README, settings.json, ...).
 func isBinaryCandidate(name string) bool {
@@ -160,7 +173,7 @@ func extractExecutable(src io.Reader, url, dst string) error {
 		}
 		var cands []entry
 		for _, f := range z.File {
-			if f.FileInfo().IsDir() || !isBinaryCandidate(f.Name) {
+			if f.FileInfo().IsDir() || !isBinaryCandidate(f.Name) || !isSafeArchivePath(f.Name) {
 				continue
 			}
 			cands = append(cands, entry{f: f, size: f.UncompressedSize64})
@@ -217,7 +230,7 @@ func extractExecutable(src io.Reader, url, dst string) error {
 			if err != nil {
 				return err
 			}
-			if h.Typeflag != tar.TypeReg || !isBinaryCandidate(h.Name) {
+			if h.Typeflag != tar.TypeReg || !isBinaryCandidate(h.Name) || !isSafeArchivePath(h.Name) {
 				continue
 			}
 			buf, err := io.ReadAll(tr)

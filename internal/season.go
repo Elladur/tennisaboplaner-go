@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"sort"
 	"time"
 )
@@ -41,6 +42,12 @@ type SeasonSettings struct {
 
 // CreateSeasonFromSettings creates a Season from the given settings
 func CreateSeasonFromSettings(settings SeasonSettings) (Season, error) {
+	if len(settings.Players) == 0 {
+		return Season{}, fmt.Errorf("at least one player is required")
+	}
+	if settings.NumberOfCourts <= 0 {
+		return Season{}, fmt.Errorf("number of courts must be positive")
+	}
 	location, err := time.LoadLocation(settings.Location)
 	if err != nil {
 		return Season{}, err
@@ -53,6 +60,9 @@ func CreateSeasonFromSettings(settings SeasonSettings) (Season, error) {
 	end, err := time.Parse(time.DateTime, settings.End)
 	if err != nil {
 		return Season{}, err
+	}
+	if !start.Before(end) {
+		return Season{}, fmt.Errorf("start must be before end")
 	}
 	var excludedDates []time.Time
 	for _, s := range settings.ExcludedDates {

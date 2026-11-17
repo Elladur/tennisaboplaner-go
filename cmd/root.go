@@ -70,13 +70,8 @@ https://github.com/Elladur/tennisaboplaner-go.`,
 			log.Fatal(err)
 		}
 		// output directory param
-		if _, err = os.Stat(outputDirectory); err != nil {
-			if !os.IsNotExist(err) {
-				log.Fatal(err)
-			}
-			if err2 := os.MkdirAll(outputDirectory, 0755); err2 != nil {
-				log.Fatal(err2)
-			}
+		if err = os.MkdirAll(outputDirectory, 0755); err != nil {
+			log.Fatal(err)
 		}
 		log.WithFields(log.Fields{
 			"level":  logLevel,
