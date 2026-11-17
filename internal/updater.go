@@ -23,6 +23,7 @@ type UpdateInfo struct {
 	Current    string
 	Latest     string
 	Available  bool
+	Updated    bool
 	ReleaseURL string
 }
 
@@ -119,7 +120,9 @@ func PerformUpdate(ctx context.Context) (UpdateInfo, error) {
 	}
 
 	info.Latest = release.Version.String()
+	info.Current = release.Version.String()
 	info.Available = false
+	info.Updated = true
 	return info, nil
 }
 

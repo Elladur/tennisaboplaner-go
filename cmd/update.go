@@ -22,6 +22,10 @@ var updateCmd = &cobra.Command{
 			log.Fatal(err)
 			return
 		}
+		if info.Updated {
+			fmt.Printf("Successfully updated to %s. Please restart the application.\n", info.Latest)
+			return
+		}
 		if info.Available {
 			fmt.Printf("Update available: %s -> %s\n%s\n", info.Current, info.Latest, info.ReleaseURL)
 			return
