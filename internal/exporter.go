@@ -272,7 +272,7 @@ func addGapStatsSheet(f *excelize.File, s Season) error {
 func getColName(index int) string {
 	name, err := excelize.ColumnNumberToName(index + 1)
 	if err != nil {
-		return string(rune('A' + index))
+		return string(rune('A' + index)) //nolint:gosec
 	}
 	return name
 }
@@ -315,7 +315,7 @@ func (s *Season) exportCalendarFileForPlayer(player int, directory string, fileN
 		event.SetDescription(convertRoundToString(s.Schedule[i], s.Players))
 	}
 	fileContent := cal.Serialize()
-	f, err := os.Create(filepath.Join(directory, fmt.Sprintf("%s.ics", fileName)))
+	f, err := os.Create(filepath.Join(directory, fmt.Sprintf("%s.ics", fileName))) //nolint:gosec
 	if err != nil {
 		return err
 	}

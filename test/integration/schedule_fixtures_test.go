@@ -18,7 +18,7 @@ type scheduleFixture struct {
 
 func loadScheduleFixture(t *testing.T, path string) scheduleFixture {
 	t.Helper()
-	content, err := os.ReadFile(path)
+	content, err := os.ReadFile(path) //nolint:gosec
 	assert.NoError(t, err)
 	var f scheduleFixture
 	err = json.Unmarshal(content, &f)

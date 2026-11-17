@@ -142,6 +142,8 @@ func normalizeWeights(w scoreWeights) scoreWeights {
 	}
 	return w
 }
+
+// GetScore computes the optimization score for a schedule.
 func GetScore(schedule Schedule, players []Player) float64 {
 	return getScoreWithWeights(schedule, players, defaultScoreWeights())
 }

@@ -57,3 +57,11 @@ func TestMatchJSONRoundTrip(t *testing.T) {
 	assert.Equal(t, m, got)
 	assert.False(t, got.isPlayer2Set)
 }
+
+func FuzzMatchUnmarshalJSON(f *testing.F) {
+	f.Add([]byte(`{"Player1":1,"Player2":2,"IsPlayer2Set":true}`))
+	f.Fuzz(func(_ *testing.T, data []byte) {
+		var m Match
+		_ = m.UnmarshalJSON(data)
+	})
+}

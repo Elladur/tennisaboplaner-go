@@ -49,7 +49,7 @@ func pop[T any](slice []T) ([]T, T) {
 // shuffle mutates and returns the given slice.
 func shuffle[T any](slice []T) []T {
 	for i := range slice {
-		j := rand.Intn(i + 1)
+		j := rand.Intn(i + 1) //nolint:gosec
 		slice[i], slice[j] = slice[j], slice[i]
 	}
 	return slice

@@ -13,7 +13,7 @@ import (
 var updateCmd = &cobra.Command{
 	Use:   "update",
 	Short: "Check for and install the latest release",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 		defer cancel()
 

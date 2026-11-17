@@ -1,6 +1,8 @@
+// Package main is a standalone performance profiling helper.
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -36,7 +38,7 @@ func main() {
 	}
 	defer pprof.StopCPUProfile()
 
-	err = internal.ExecutePlanerParallel(settings, "output", 100)
+	err = internal.ExecutePlanerParallel(context.Background(), settings, "output", 100)
 	if err != nil {
 		fmt.Println(err)
 		return

@@ -1,6 +1,8 @@
+// Package internal contains domain logic for the tennis abo planner.
 package internal
 
 import (
+	"context"
 	"fmt"
 	"math"
 
@@ -14,7 +16,7 @@ type seasonResult struct {
 }
 
 // ExecutePlanerSerial does n times planning and exports the best result
-func ExecutePlanerSerial(settings SeasonSettings, directory string, executions int) error {
+func ExecutePlanerSerial(ctx context.Context, settings SeasonSettings, directory string, executions int) error {
 	if executions <= 0 {
 		return fmt.Errorf("executions must be positive")
 	}
@@ -25,12 +27,17 @@ func ExecutePlanerSerial(settings SeasonSettings, directory string, executions i
 		"times": executions,
 	}).Info("Start planning multiple times")
 	for i := 0; i < executions; i++ {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
 		s, err := CreateSeasonFromSettings(settings)
 		if err != nil {
 			return err
 		}
 		optimizer := Optimizer{Season: &s}
-		score := optimizer.Optimize()
+		score := optimizer.Optimize(ctx)
 		if score < bestSeason.score {
 			bestSeason = seasonResult{season: s, score: score}
 			hasResult = true
@@ -53,7 +60,7 @@ func ExecutePlanerSerial(settings SeasonSettings, directory string, executions i
 }
 
 // ExecutePlanerParallel does n times planning using go routines and exports the best result
-func ExecutePlanerParallel(settings SeasonSettings, directory string, executions int) error {
+func ExecutePlanerParallel(ctx context.Context, settings SeasonSettings, directory string, executions int) error {
 	if executions <= 0 {
 		return fmt.Errorf("executions must be positive")
 	}
@@ -65,28 +72,37 @@ func ExecutePlanerParallel(settings SeasonSettings, directory string, executions
 		"times": executions,
 	}).Info("Start planning multiple times")
 
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	for range executions {
-		go executeOptimize(settings, c)
+		go executeOptimize(ctx, settings, c)
 	}
 	for n := 1; n <= executions; n++ {
-		result := <-c
-		if result.err != nil {
-			return result.err
-		}
-		if result.score < bestSeason.score {
-			bestSeason = result
-			hasResult = true
-		}
-		step := executions / 10
-		if step < 1 {
-			step = 1
-		}
-		if n == 1 || n == executions || n%step == 0 {
-			log.WithFields(log.Fields{
-				"completed": n,
-				"total":     executions,
-				"percent":   n * 100 / executions,
-			}).Info("Planning progress")
+		select {
+		case result := <-c:
+			if result.err != nil {
+				cancel()
+				return result.err
+			}
+			if result.score < bestSeason.score {
+				bestSeason = result
+				hasResult = true
+			}
+			step := executions / 10
+			if step < 1 {
+				step = 1
+			}
+			if n == 1 || n == executions || n%step == 0 {
+				log.WithFields(log.Fields{
+					"completed": n,
+					"total":     executions,
+					"percent":   n * 100 / executions,
+				}).Info("Planning progress")
+			}
+		case <-ctx.Done():
+			cancel()
+			return ctx.Err()
 		}
 	}
 	if !hasResult {
@@ -105,13 +121,16 @@ func ExecutePlanerParallel(settings SeasonSettings, directory string, executions
 	return nil
 }
 
-func executeOptimize(settings SeasonSettings, c chan seasonResult) {
+func executeOptimize(ctx context.Context, settings SeasonSettings, c chan seasonResult) {
 	s, err := CreateSeasonFromSettings(settings)
 	if err != nil {
 		c <- seasonResult{err: err}
 		return
 	}
 	optimizer := Optimizer{Season: &s}
-	score := optimizer.Optimize()
-	c <- seasonResult{season: s, score: score}
+	score := optimizer.Optimize(ctx)
+	select {
+	case c <- seasonResult{season: s, score: score}:
+	case <-ctx.Done():
+	}
 }

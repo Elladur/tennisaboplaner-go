@@ -1,6 +1,10 @@
 package internal
 
-import log "github.com/sirupsen/logrus"
+import (
+	"context"
+
+	log "github.com/sirupsen/logrus"
+)
 
 // Optimizer is responsible for optimizing the schedule
 type Optimizer struct {
@@ -51,18 +55,23 @@ func applySwapPlayersOfRound(stats *scheduleStats, s *Season, roundIdx, p, q int
 
 // Optimize is the main function of the optimizer
 // It will optimize the season in a way that the score is minimal for the schedule
-func (o *Optimizer) Optimize() float64 {
+func (o *Optimizer) Optimize(ctx context.Context) float64 {
 	swaps := 1
 	var score float64
 	for swaps > 0 {
+		select {
+		case <-ctx.Done():
+			return score
+		default:
+		}
 		swaps = 0
 		log.Debug("Start a new round of optimization")
 
 		log.Debug("Optimizing by swapping players")
-		swaps += o.optimizeBySwappingPlayers()
+		swaps += o.optimizeBySwappingPlayers(ctx)
 
 		log.Debug("Optimizing by swapping matches")
-		swaps += o.optimizeBySwappingMatches()
+		swaps += o.optimizeBySwappingMatches(ctx)
 
 		score = GetScore(o.Season.Schedule, o.Season.Players)
 		log.WithFields(log.Fields{
@@ -75,7 +84,8 @@ func (o *Optimizer) Optimize() float64 {
 	return score
 }
 
-func (o *Optimizer) optimizeBySwappingPlayers() int {
+//nolint:gocyclo
+func (o *Optimizer) optimizeBySwappingPlayers(_ context.Context) int {
 	swaps := 0
 	weights := defaultScoreWeights()
 	stats := computeScheduleStats(o.Season.Schedule, o.Season.Players)
@@ -145,16 +155,15 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 						"player2":  q,
 					}).Debug("Swapped players")
 					break
-				} else {
-					// restore stats to reflect the original schedule
-					for _, m := range o.Season.Schedule[i] {
-						stats.removeMatch(m, i)
-					}
-					for _, m := range oldRound {
-						stats.addMatch(m, i)
-					}
-					o.Season.swapPlayersOfRound(i, q, p)
 				}
+				// restore stats to reflect the original schedule
+				for _, m := range o.Season.Schedule[i] {
+					stats.removeMatch(m, i)
+				}
+				for _, m := range oldRound {
+					stats.addMatch(m, i)
+				}
+				o.Season.swapPlayersOfRound(i, q, p)
 			}
 		}
 	}
@@ -163,7 +172,7 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 	return swaps
 }
 
-func (o *Optimizer) optimizeBySwappingMatches() int {
+func (o *Optimizer) optimizeBySwappingMatches(_ context.Context) int {
 	swaps := 0
 	weights := defaultScoreWeights()
 	stats := computeScheduleStats(o.Season.Schedule, o.Season.Players)
