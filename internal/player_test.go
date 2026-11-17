@@ -47,3 +47,11 @@ func TestPlayerUnmarshalJSON(t *testing.T) {
 	assert.Equal(t, expected.CannotPlay, player.CannotPlay)
 	assert.Equal(t, expected.Weight, player.Weight)
 }
+
+func FuzzPlayerUnmarshalJSON(f *testing.F) {
+	f.Add([]byte(`{"Name":"a","CannotPlay":["2024-01-01"],"Weight":1}`))
+	f.Fuzz(func(_ *testing.T, data []byte) {
+		var p Player
+		_ = p.UnmarshalJSON(data)
+	})
+}

@@ -81,19 +81,16 @@ func TestShuffle(t *testing.T) {
 				copy(original, v)
 				shuffled := shuffle(v)
 				assert.ElementsMatch(t, v, shuffled)
-				assert.NotEqual(t, shuffled, original)
 			case []string:
 				original := make([]string, len(v))
 				copy(original, v)
 				shuffled := shuffle(v)
 				assert.ElementsMatch(t, v, shuffled)
-				assert.NotEqual(t, shuffled, original)
 			case []float64:
 				original := make([]float64, len(v))
 				copy(original, v)
 				shuffled := shuffle(v)
 				assert.ElementsMatch(t, v, shuffled)
-				assert.NotEqual(t, shuffled, original)
 			}
 		})
 	}

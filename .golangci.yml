@@ -1,0 +1,13 @@
+version: "2"
+linters:
+  default: none
+  enable:
+    - errcheck
+    - gosec
+    - gocyclo
+    - revive
+    - staticcheck
+    - unused
+  settings:
+    gocyclo:
+      min-complexity: 15

@@ -3,6 +3,7 @@
 package integration
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -31,7 +32,7 @@ func TestDefaultRun200Executions(t *testing.T) {
 				return
 			}
 			opt := internal.Optimizer{Season: &s}
-			results <- opt.Optimize()
+			results <- opt.Optimize(context.Background())
 		}()
 	}
 	for i := 0; i < 200; i++ {

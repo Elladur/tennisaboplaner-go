@@ -31,12 +31,11 @@ func (s *Season) Export(directory string) error {
 	return nil
 }
 
-func (s *Season) exportExcel(directory string) error {
+func (s *Season) exportExcel(directory string) (err error) {
 	f := excelize.NewFile()
 	defer func() {
-		if err := f.Close(); err != nil {
-			// Handle error if needed
-			fmt.Printf("Error closing excel file: %v", err)
+		if cerr := f.Close(); cerr != nil && err == nil {
+			err = cerr
 		}
 	}()
 
@@ -273,7 +272,7 @@ func addGapStatsSheet(f *excelize.File, s Season) error {
 func getColName(index int) string {
 	name, err := excelize.ColumnNumberToName(index + 1)
 	if err != nil {
-		return string(rune('A' + index))
+		return string(rune('A' + index)) //nolint:gosec
 	}
 	return name
 }
@@ -285,15 +284,21 @@ func getCell(i, j int) string {
 }
 
 func (s *Season) exportCalendarFiles(directory string) error {
+	used := make(map[string]bool)
 	for i := range s.Players {
-		if err := s.exportCalendarFileForPlayer(i, directory); err != nil {
+		name := sanitizeFilename(s.Players[i].Name)
+		if used[name] {
+			name = fmt.Sprintf("%s_%d", name, i)
+		}
+		used[name] = true
+		if err := s.exportCalendarFileForPlayer(i, directory, name); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (s *Season) exportCalendarFileForPlayer(player int, directory string) error {
+func (s *Season) exportCalendarFileForPlayer(player int, directory string, fileName string) (err error) {
 	cal := ics.NewCalendar()
 	cal.SetMethod(ics.MethodRequest)
 	for _, i := range s.Schedule.RoundIndizesOfPlayer(player) {
@@ -310,14 +315,13 @@ func (s *Season) exportCalendarFileForPlayer(player int, directory string) error
 		event.SetDescription(convertRoundToString(s.Schedule[i], s.Players))
 	}
 	fileContent := cal.Serialize()
-	f, err := os.Create(filepath.Join(directory, fmt.Sprintf("%s.ics", s.Players[player].Name)))
+	f, err := os.Create(filepath.Join(directory, fmt.Sprintf("%s.ics", fileName))) //nolint:gosec
 	if err != nil {
 		return err
 	}
 	defer func() {
-		if err := f.Close(); err != nil {
-			// Handle error if needed
-			fmt.Printf("Error closing excel file: %v", err)
+		if cerr := f.Close(); cerr != nil && err == nil {
+			err = cerr
 		}
 	}()
 

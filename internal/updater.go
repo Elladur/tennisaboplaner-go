@@ -41,7 +41,7 @@ func isUpdateAvailable(current, latest string) bool {
 }
 
 // CheckForUpdate queries GitHub releases for the latest version.
-func CheckForUpdate(ctx context.Context) (UpdateInfo, error) {
+func CheckForUpdate(_ context.Context) (UpdateInfo, error) {
 	info := UpdateInfo{Current: Version}
 	slug := RepoOwner + "/" + RepoName
 
@@ -107,7 +107,7 @@ func PerformUpdate(ctx context.Context) (UpdateInfo, error) {
 		_ = os.Remove(tmpName)
 		return info, err
 	}
-	if err := os.Chmod(tmpName, 0755); err != nil {
+	if err := os.Chmod(tmpName, 0755); err != nil { //nolint:gosec
 		_ = os.Remove(tmpName)
 		return info, err
 	}
@@ -121,6 +121,19 @@ func PerformUpdate(ctx context.Context) (UpdateInfo, error) {
 	info.Latest = release.Version.String()
 	info.Available = false
 	return info, nil
+}
+
+// isSafeArchivePath reports whether an archive entry name does not escape
+// the destination directory.
+func isSafeArchivePath(name string) bool {
+	if filepath.IsAbs(name) {
+		return false
+	}
+	cleaned := filepath.Clean(name)
+	if cleaned == ".." || strings.HasPrefix(cleaned, ".."+string(filepath.Separator)) {
+		return false
+	}
+	return true
 }
 
 // isBinaryCandidate reports whether name looks like the shipped executable
@@ -140,6 +153,8 @@ func isBinaryCandidate(name string) bool {
 
 // extractExecutable writes the executable file found in the archive
 // (or the raw body if not an archive) to dst.
+//
+//nolint:gocyclo
 func extractExecutable(src io.Reader, url, dst string) error {
 	lower := strings.ToLower(url)
 	switch {
@@ -160,7 +175,7 @@ func extractExecutable(src io.Reader, url, dst string) error {
 		}
 		var cands []entry
 		for _, f := range z.File {
-			if f.FileInfo().IsDir() || !isBinaryCandidate(f.Name) {
+			if f.FileInfo().IsDir() || !isBinaryCandidate(f.Name) || !isSafeArchivePath(f.Name) {
 				continue
 			}
 			cands = append(cands, entry{f: f, size: f.UncompressedSize64})
@@ -190,11 +205,11 @@ func extractExecutable(src io.Reader, url, dst string) error {
 			return err
 		}
 		defer func() { _ = rc.Close() }()
-		out, err := os.Create(dst)
+		out, err := os.Create(dst) //nolint:gosec
 		if err != nil {
 			return err
 		}
-		_, err = io.Copy(out, rc)
+		_, err = io.Copy(out, rc) //nolint:gosec
 		_ = out.Close()
 		return err
 	case strings.HasSuffix(lower, ".tar.gz"), strings.HasSuffix(lower, ".tgz"):
@@ -217,7 +232,7 @@ func extractExecutable(src io.Reader, url, dst string) error {
 			if err != nil {
 				return err
 			}
-			if h.Typeflag != tar.TypeReg || !isBinaryCandidate(h.Name) {
+			if h.Typeflag != tar.TypeReg || !isBinaryCandidate(h.Name) || !isSafeArchivePath(h.Name) {
 				continue
 			}
 			buf, err := io.ReadAll(tr)
@@ -244,7 +259,7 @@ func extractExecutable(src io.Reader, url, dst string) error {
 				}
 			}
 		}
-		out, err := os.Create(dst)
+		out, err := os.Create(dst) //nolint:gosec
 		if err != nil {
 			return err
 		}
@@ -252,12 +267,12 @@ func extractExecutable(src io.Reader, url, dst string) error {
 		_ = out.Close()
 		return err
 	default:
-		out, err := os.Create(dst)
+		out, err := os.Create(dst) //nolint:gosec
 		if err != nil {
 			return err
 		}
 		defer func() { _ = out.Close() }()
-		_, err = io.Copy(out, src)
+		_, err = io.Copy(out, src) //nolint:gosec
 		return err
 	}
 }

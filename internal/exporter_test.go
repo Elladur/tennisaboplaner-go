@@ -70,3 +70,14 @@ func TestGapLengths(t *testing.T) {
 	assert.Equal(t, []int{0, 4}, gapLengths(5, []int{0}))
 	assert.Equal(t, []int{2, 2, 2}, gapLengths(8, []int{2, 5}))
 }
+
+func TestExportExcelSheetNames(t *testing.T) {
+	season := setupStaticTestSeason()
+	tempDir := t.TempDir()
+	err := season.exportExcel(tempDir)
+	assert.NoError(t, err)
+	f, err := excelize.OpenFile(tempDir + string(os.PathSeparator) + "schedule.xlsx")
+	assert.NoError(t, err)
+	defer func() { _ = f.Close() }()
+	assert.Equal(t, []string{"Schedule", "Partner by Player", "NumMatches", "Cost", "GapStats"}, f.GetSheetList())
+}

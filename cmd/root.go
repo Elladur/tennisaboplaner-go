@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/signal"
 
 	"github.com/Elladur/tennisaboplaner-go/internal"
 	log "github.com/sirupsen/logrus"
@@ -19,6 +20,7 @@ var logLevel string
 var outputDirectory string
 var executionTimes int
 var noUpdateCheck bool
+var quiet bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -34,7 +36,7 @@ certain week. Additonally we can exclude complete dates from planning
 (e.g. christmas). All these settings can be specified in a
 settings.json. For an example take look at
 https://github.com/Elladur/tennisaboplaner-go.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		// loglevel switch
 		switch logLevel {
 		case "info":
@@ -45,6 +47,9 @@ https://github.com/Elladur/tennisaboplaner-go.`,
 			log.SetLevel(log.DebugLevel)
 		default:
 			log.Fatal("invalid log level: ", logLevel)
+		}
+		if quiet {
+			log.SetLevel(log.WarnLevel)
 		}
 
 		// best-effort update check
@@ -60,7 +65,7 @@ https://github.com/Elladur/tennisaboplaner-go.`,
 		}
 
 		// settings param
-		content, err := os.ReadFile(cfgFile)
+		content, err := os.ReadFile(cfgFile) //nolint:gosec
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -70,13 +75,8 @@ https://github.com/Elladur/tennisaboplaner-go.`,
 			log.Fatal(err)
 		}
 		// output directory param
-		if _, err = os.Stat(outputDirectory); err != nil {
-			if !os.IsNotExist(err) {
-				log.Fatal(err)
-			}
-			if err2 := os.MkdirAll(outputDirectory, 0755); err2 != nil {
-				log.Fatal(err2)
-			}
+		if err = os.MkdirAll(outputDirectory, 0755); err != nil { //nolint:gosec
+			log.Fatal(err)
 		}
 		log.WithFields(log.Fields{
 			"level":  logLevel,
@@ -85,7 +85,9 @@ https://github.com/Elladur/tennisaboplaner-go.`,
 			"outDir": outputDirectory,
 		}).Info("Running with parameters:")
 
-		err = internal.ExecutePlanerParallel(settings, outputDirectory, executionTimes)
+		ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+		defer cancel()
+		err = internal.ExecutePlanerParallel(ctx, settings, outputDirectory, executionTimes)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -107,4 +109,5 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&outputDirectory, "outDir", "output", "directory to which the files are exported")
 	rootCmd.PersistentFlags().IntVar(&executionTimes, "times", 200, "how many times should be tried to find a optimal schedule")
 	rootCmd.PersistentFlags().BoolVar(&noUpdateCheck, "no-update-check", false, "disable automatic update check")
+	rootCmd.PersistentFlags().BoolVar(&quiet, "quiet", false, "suppress progress output")
 }

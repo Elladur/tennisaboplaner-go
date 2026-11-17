@@ -3,6 +3,7 @@
 package integration
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -54,7 +55,7 @@ func TestOptimalParallelRuns(t *testing.T) {
 						t.Error(err)
 						return
 					}
-					score := (&internal.Optimizer{Season: &s}).Optimize()
+					score := (&internal.Optimizer{Season: &s}).Optimize(context.Background())
 					mu.Lock()
 					if score < best {
 						best = score
