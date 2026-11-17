@@ -8,19 +8,19 @@
     "NumberOfCourts": 2,
     "Players": [
         {
-            "Name": "Patrick",
+            "Name": "player1",
             "CannotPlay": [
                 "2026-10-06"
             ],
             "Weight": 1
         },
         {
-            "Name": "Dietmar",
+            "Name": "player2",
             "CannotPlay": [],
             "Weight": 1
         },
         {
-            "Name": "Stefan",
+            "Name": "player3",
             "CannotPlay": [
                 "2026-10-06",
                 "2026-10-27"
@@ -28,12 +28,12 @@
             "Weight": 1
         },
         {
-            "Name": "Christoph",
+            "Name": "player4",
             "CannotPlay": [],
             "Weight": 1
         },
         {
-            "Name": "Bernhard",
+            "Name": "player5",
             "CannotPlay": [
                 "2026-10-06",
                 "2026-10-13",
@@ -43,12 +43,12 @@
             "Weight": 0.5
         },
         {
-            "Name": "Rene",
+            "Name": "player6",
             "CannotPlay": [],
             "Weight": 0.5
         },
         {
-            "Name": "Alex",
+            "Name": "player7",
             "CannotPlay": [],
             "Weight": 0.5
         }

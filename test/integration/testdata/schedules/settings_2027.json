@@ -4,12 +4,12 @@
       "CannotPlay": [
         "2026-10-06"
       ],
-      "Name": "Patrick",
+      "Name": "player1",
       "Weight": 1
     },
     {
       "CannotPlay": null,
-      "Name": "Dietmar",
+      "Name": "player2",
       "Weight": 1
     },
     {
@@ -17,12 +17,12 @@
         "2026-10-06",
         "2026-10-27"
       ],
-      "Name": "Stefan",
+      "Name": "player3",
       "Weight": 1
     },
     {
       "CannotPlay": null,
-      "Name": "Christoph",
+      "Name": "player4",
       "Weight": 1
     },
     {
@@ -32,17 +32,17 @@
         "2026-10-20",
         "2026-10-27"
       ],
-      "Name": "Bernhard",
+      "Name": "player5",
       "Weight": 0.5
     },
     {
       "CannotPlay": null,
-      "Name": "Rene",
+      "Name": "player6",
       "Weight": 0.5
     },
     {
       "CannotPlay": null,
-      "Name": "Alex",
+      "Name": "player7",
       "Weight": 0.5
     }
   ],
