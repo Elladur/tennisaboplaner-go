@@ -90,23 +90,41 @@ func (o *Optimizer) optimizeBySwappingPlayers() int {
 		for j, p := range playerOfRound {
 			for k := j + 1; k < len(playerOfRound); k++ {
 				q := playerOfRound[k]
+				// snapshot the round before the structural swap so stats can be
+				// updated incrementally (only this round changes).
+				oldRound := make([]Match, len(o.Season.Schedule[i]))
+				copy(oldRound, o.Season.Schedule[i])
 				swapped := o.Season.swapPlayersOfRound(i, p, q)
 				if !swapped {
 					continue
 				}
-				newScore = GetScore(o.Season.Schedule, o.Season.Players)
+				for _, m := range oldRound {
+					stats.removeMatch(m, i)
+				}
+				for _, m := range o.Season.Schedule[i] {
+					stats.addMatch(m, i)
+				}
+				oldScore := currentScore
+				newScore = getScoreFromStats(stats, o.Season.Schedule, o.Season.Players, weights)
 				if newScore < currentScore {
 					swaps++
-					stats = computeScheduleStats(o.Season.Schedule, o.Season.Players)
 					currentScore = newScore
 					log.WithFields(log.Fields{
-						"score":   currentScore,
-						"round":   i,
-						"player1": p,
-						"player2": q,
+						"score":    currentScore,
+						"oldScore": oldScore,
+						"round":    i,
+						"player1":  p,
+						"player2":  q,
 					}).Debug("Swapped players")
 					break
 				} else {
+					// restore stats to reflect the original schedule
+					for _, m := range o.Season.Schedule[i] {
+						stats.removeMatch(m, i)
+					}
+					for _, m := range oldRound {
+						stats.addMatch(m, i)
+					}
 					o.Season.swapPlayersOfRound(i, q, p)
 				}
 			}
