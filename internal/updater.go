@@ -123,7 +123,22 @@ func PerformUpdate(ctx context.Context) (UpdateInfo, error) {
 	return info, nil
 }
 
-// extractExecutable writes the first executable file found in the archive
+// isBinaryCandidate reports whether name looks like the shipped executable
+// rather than an auxiliary file (LICENSE, README, settings.json, ...).
+func isBinaryCandidate(name string) bool {
+	base := strings.ToLower(filepath.Base(name))
+	switch base {
+	case "license", "readme", "readme.md", "settings.json":
+		return false
+	}
+	switch filepath.Ext(base) {
+	case ".md", ".txt", ".json", ".yml", ".yaml", ".toml":
+		return false
+	}
+	return true
+}
+
+// extractExecutable writes the executable file found in the archive
 // (or the raw body if not an archive) to dst.
 func extractExecutable(src io.Reader, url, dst string) error {
 	lower := strings.ToLower(url)
@@ -138,24 +153,50 @@ func extractExecutable(src io.Reader, url, dst string) error {
 		if err != nil {
 			return err
 		}
+		// Collect candidate binary entries.
+		type entry struct {
+			f    *zip.File
+			size uint64
+		}
+		var cands []entry
 		for _, f := range z.File {
-			if f.FileInfo().IsDir() {
+			if f.FileInfo().IsDir() || !isBinaryCandidate(f.Name) {
 				continue
 			}
-			rc, err := f.Open()
-			if err != nil {
-				return err
+			cands = append(cands, entry{f: f, size: f.UncompressedSize64})
+		}
+		if len(cands) == 0 {
+			return fmt.Errorf("no executable in zip")
+		}
+		// Prefer name match, then largest.
+		chosen := cands[0]
+		for _, c := range cands {
+			base := strings.TrimSuffix(filepath.Base(c.f.Name), filepath.Ext(c.f.Name))
+			if strings.EqualFold(base, "tennisaboplaner-go") {
+				chosen = c
+				break
 			}
-			defer func() { _ = rc.Close() }()
-			out, err := os.Create(dst)
-			if err != nil {
-				return err
+		}
+		if !strings.EqualFold(strings.TrimSuffix(filepath.Base(chosen.f.Name), filepath.Ext(chosen.f.Name)), "tennisaboplaner-go") {
+			// fall back to largest
+			for _, c := range cands {
+				if c.size > chosen.size {
+					chosen = c
+				}
 			}
-			_, err = io.Copy(out, rc)
-			_ = out.Close()
+		}
+		rc, err := chosen.f.Open()
+		if err != nil {
 			return err
 		}
-		return fmt.Errorf("no file in zip")
+		defer func() { _ = rc.Close() }()
+		out, err := os.Create(dst)
+		if err != nil {
+			return err
+		}
+		_, err = io.Copy(out, rc)
+		_ = out.Close()
+		return err
 	case strings.HasSuffix(lower, ".tar.gz"), strings.HasSuffix(lower, ".tgz"):
 		gz, err := gzip.NewReader(src)
 		if err != nil {
@@ -163,6 +204,11 @@ func extractExecutable(src io.Reader, url, dst string) error {
 		}
 		defer func() { _ = gz.Close() }()
 		tr := tar.NewReader(gz)
+		type entry struct {
+			header *tar.Header
+			data   []byte
+		}
+		var cands []entry
 		for {
 			h, err := tr.Next()
 			if err == io.EOF {
@@ -171,21 +217,40 @@ func extractExecutable(src io.Reader, url, dst string) error {
 			if err != nil {
 				return err
 			}
-			if h.Typeflag != tar.TypeReg {
+			if h.Typeflag != tar.TypeReg || !isBinaryCandidate(h.Name) {
 				continue
 			}
-			out, err := os.Create(dst)
+			buf, err := io.ReadAll(tr)
 			if err != nil {
 				return err
 			}
-			_, err = io.Copy(out, tr)
-			_ = out.Close()
-			if err != nil {
-				return err
-			}
-			return nil
+			cands = append(cands, entry{header: h, data: buf})
 		}
-		return fmt.Errorf("no regular file in tar")
+		if len(cands) == 0 {
+			return fmt.Errorf("no regular file in tar")
+		}
+		chosen := cands[0]
+		for _, c := range cands {
+			base := strings.TrimSuffix(filepath.Base(c.header.Name), filepath.Ext(c.header.Name))
+			if strings.EqualFold(base, "tennisaboplaner-go") {
+				chosen = c
+				break
+			}
+		}
+		if !strings.EqualFold(strings.TrimSuffix(filepath.Base(chosen.header.Name), filepath.Ext(chosen.header.Name)), "tennisaboplaner-go") {
+			for _, c := range cands {
+				if c.header.Size > chosen.header.Size {
+					chosen = c
+				}
+			}
+		}
+		out, err := os.Create(dst)
+		if err != nil {
+			return err
+		}
+		_, err = out.Write(chosen.data)
+		_ = out.Close()
+		return err
 	default:
 		out, err := os.Create(dst)
 		if err != nil {
