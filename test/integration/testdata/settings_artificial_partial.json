@@ -1,0 +1,28 @@
+{
+    "CalendarTitle": "Partial",
+    "Start": "2024-01-01 19:00:00",
+    "End": "2024-07-01 21:00:00",
+    "Location": "Europe/Berlin",
+    "ExcludedDates": [
+        "2024-01-15"
+    ],
+    "OverallCost": 300,
+    "NumberOfCourts": 2,
+    "Players": [
+        {
+            "Name": "A",
+            "CannotPlay": [],
+            "Weight": 1
+        },
+        {
+            "Name": "B",
+            "CannotPlay": [],
+            "Weight": 1
+        },
+        {
+            "Name": "C",
+            "CannotPlay": [],
+            "Weight": 1
+        }
+    ]
+}

@@ -1,0 +1,21 @@
+{
+    "CalendarTitle": "Small",
+    "Start": "2024-01-01 19:00:00",
+    "End": "2024-07-01 21:00:00",
+    "Location": "Europe/Berlin",
+    "ExcludedDates": [],
+    "OverallCost": 500,
+    "NumberOfCourts": 1,
+    "Players": [
+        {
+            "Name": "A",
+            "CannotPlay": [],
+            "Weight": 1
+        },
+        {
+            "Name": "B",
+            "CannotPlay": [],
+            "Weight": 1
+        }
+    ]
+}

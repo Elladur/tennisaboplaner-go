@@ -28,4 +28,5 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
+        ldflags: -X github.com/Elladur/tennisaboplaner-go/internal.Version=${{ github.ref_name }}
         extra_files: LICENSE README.md settings.json

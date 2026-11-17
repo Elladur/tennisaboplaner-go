@@ -74,30 +74,3 @@ func (m Match) String(players []Player) string {
 	}
 	return fmt.Sprintf("%s vs ...", players[m.player1].Name)
 }
-
-func canMatchBeAdded(matches []Match, match Match) bool {
-	for _, m := range matches {
-		if m.player1 == match.player1 || (match.isPlayer2Set && m.player1 == match.player2) {
-			return false
-		}
-		if m.isPlayer2Set && (m.player2 == match.player1 || (match.isPlayer2Set && m.player2 == match.player2)) {
-			return false
-		}
-	}
-	return true
-}
-
-func (m *Match) replacePlayer(oldPlayer int, newPlayer int) error {
-	if isInSlice(newPlayer, m.getPlayers()) {
-		return errors.New("new player is already in the match")
-	}
-	if m.player1 == oldPlayer {
-		m.player1 = newPlayer
-		return nil
-	}
-	if m.isPlayer2Set && m.player2 == oldPlayer {
-		m.player2 = newPlayer
-		return nil
-	}
-	return errors.New("old player is not in the match")
-}

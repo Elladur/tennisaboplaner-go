@@ -2,6 +2,7 @@ package internal
 
 import (
 	"math"
+	"reflect"
 
 	"github.com/montanaflynn/stats"
 )
@@ -15,7 +16,7 @@ type scheduleStats struct {
 	matchRounds  [][][]int
 }
 
-func computeScheduleStats(schedule [][]Match, players []Player) scheduleStats {
+func computeScheduleStats(schedule Schedule, players []Player) scheduleStats {
 	n := len(players)
 	s := scheduleStats{
 		playerCounts: make([]int, n),
@@ -29,35 +30,137 @@ func computeScheduleStats(schedule [][]Match, players []Player) scheduleStats {
 	}
 	for r, round := range schedule {
 		for _, m := range round {
-			if m.isPlayer2Set {
-				p1, p2 := m.player1, m.player2
-				s.playerCounts[p1]++
-				s.playerCounts[p2]++
-				s.playerRounds[p1] = append(s.playerRounds[p1], r)
-				s.playerRounds[p2] = append(s.playerRounds[p2], r)
-				s.matchCounts[p1][p2]++
-				s.matchRounds[p1][p2] = append(s.matchRounds[p1][p2], r)
-			} else {
-				p := m.player1
-				s.playerCounts[p]++
-				s.playerRounds[p] = append(s.playerRounds[p], r)
-			}
+			s.addMatch(m, r)
 		}
 	}
 	return s
 }
 
-// GetScore gives the value which was used to optimize the schedule
-func GetScore(schedule [][]Match, players []Player) float64 {
-	statsData := computeScheduleStats(schedule, players)
+// statsConsistent reports whether s matches a freshly computed view of schedule.
+// Used by tests (and optionally debug) to catch stats/schedule drift.
+func statsConsistent(s scheduleStats, schedule Schedule, players []Player) bool {
+	fresh := computeScheduleStats(schedule, players)
+	return reflect.DeepEqual(s, fresh)
+}
 
+func insertSorted(rounds []int, round int) []int {
+	for i, v := range rounds {
+		if round < v {
+			// Allocate a fresh backing array so we never clobber a shared slice.
+			out := make([]int, len(rounds)+1)
+			copy(out, rounds[:i])
+			out[i] = round
+			copy(out[i+1:], rounds[i:])
+			return out
+		}
+	}
+	out := make([]int, len(rounds)+1)
+	copy(out, rounds)
+	out[len(rounds)] = round
+	return out
+}
+
+func (s *scheduleStats) addMatch(m Match, round int) {
+	if m.isPlayer2Set {
+		p1, p2 := m.player1, m.player2
+		s.playerCounts[p1]++
+		s.playerCounts[p2]++
+		s.playerRounds[p1] = insertSorted(s.playerRounds[p1], round)
+		s.playerRounds[p2] = insertSorted(s.playerRounds[p2], round)
+		s.matchCounts[p1][p2]++
+		s.matchRounds[p1][p2] = insertSorted(s.matchRounds[p1][p2], round)
+	} else {
+		p := m.player1
+		s.playerCounts[p]++
+		s.playerRounds[p] = insertSorted(s.playerRounds[p], round)
+	}
+}
+
+func removeRoundIndex(rounds []int, round int) []int {
+	for i, v := range rounds {
+		if v == round {
+			out := make([]int, 0, len(rounds)-1)
+			out = append(out, rounds[:i]...)
+			out = append(out, rounds[i+1:]...)
+			if len(out) == 0 {
+				return nil
+			}
+			return out
+		}
+	}
+	return rounds
+}
+
+func (s *scheduleStats) removeMatch(m Match, round int) {
+	if m.isPlayer2Set {
+		p1, p2 := m.player1, m.player2
+		s.playerCounts[p1]--
+		s.playerCounts[p2]--
+		s.playerRounds[p1] = removeRoundIndex(s.playerRounds[p1], round)
+		s.playerRounds[p2] = removeRoundIndex(s.playerRounds[p2], round)
+		s.matchCounts[p1][p2]--
+		s.matchRounds[p1][p2] = removeRoundIndex(s.matchRounds[p1][p2], round)
+	} else {
+		p := m.player1
+		s.playerCounts[p]--
+		s.playerRounds[p] = removeRoundIndex(s.playerRounds[p], round)
+	}
+}
+
+// scoreWeights controls the relative importance of the four scoring components.
+type scoreWeights struct {
+	PlayTime    float64 `json:"PlayTime"`
+	Matchup     float64 `json:"Matchup"`
+	PausePlay   float64 `json:"PausePlay"`
+	PauseMatch  float64 `json:"PauseMatch"`
+	Consecutive float64 `json:"Consecutive"`
+}
+
+// defaultScoreWeights returns the default weights (play time dominant, matchup
+// slightly above pause regularity).
+func defaultScoreWeights() scoreWeights {
+	return scoreWeights{PlayTime: 3, Matchup: 1.5, PausePlay: 1, PauseMatch: 1, Consecutive: 1}
+}
+
+// normalizeWeights replaces zero (unset) values with defaults.
+func normalizeWeights(w scoreWeights) scoreWeights {
+	d := defaultScoreWeights()
+	if w.PlayTime <= 0 {
+		w.PlayTime = d.PlayTime
+	}
+	if w.Matchup <= 0 {
+		w.Matchup = d.Matchup
+	}
+	if w.PausePlay <= 0 {
+		w.PausePlay = d.PausePlay
+	}
+	if w.PauseMatch <= 0 {
+		w.PauseMatch = d.PauseMatch
+	}
+	if w.Consecutive <= 0 {
+		w.Consecutive = d.Consecutive
+	}
+	return w
+}
+func GetScore(schedule Schedule, players []Player) float64 {
+	return getScoreWithWeights(schedule, players, defaultScoreWeights())
+}
+
+// getScoreWithWeights is like GetScore but uses the provided weights.
+func getScoreWithWeights(schedule Schedule, players []Player, weights scoreWeights) float64 {
+	statsData := computeScheduleStats(schedule, players)
+	return getScoreFromStats(statsData, schedule, players, weights)
+}
+
+func getScoreFromStats(statsData scheduleStats, schedule Schedule, players []Player, weights scoreWeights) float64 {
+	weights = normalizeWeights(weights)
 	val1 := getStdOfPlayerTimesPlayingStats(statsData, players)
 	val2 := getStdOfPossibleMatchesStats(statsData, players)
 	val3 := getStdOfPauseBetweenPlayingStats(statsData, schedule, players)
 	val4 := getStdOfPauseBetweenMatchesStats(statsData, schedule, players)
+	val5 := getConsecutivePlayDroughtPenalty(statsData, schedule)
 
-	// since weight should define how often someone is playing, the number of playing is same important than all other factors combined
-	return 3*val1 + val2 + val3 + val4
+	return weights.PlayTime*val1 + weights.Matchup*val2 + weights.PausePlay*val3 + weights.PauseMatch*val4 + weights.Consecutive*val5
 }
 
 func getStdOfPlayerTimesPlayingStats(s scheduleStats, players []Player) float64 {
@@ -84,7 +187,7 @@ func getStdOfPossibleMatchesStats(s scheduleStats, players []Player) float64 {
 	return getCoefficientOfVariation(weightedMatches)
 }
 
-func getStdOfPauseBetweenPlayingStats(s scheduleStats, schedule [][]Match, players []Player) float64 {
+func getStdOfPauseBetweenPlayingStats(s scheduleStats, schedule Schedule, players []Player) float64 {
 	pausesBetweenPlaying := make([]float64, 0, len(players))
 	for i := range players {
 		val := calcCoefficientOfVariationOfPauses(schedule, s.playerRounds[i])
@@ -97,7 +200,7 @@ func getStdOfPauseBetweenPlayingStats(s scheduleStats, schedule [][]Match, playe
 	return val
 }
 
-func getStdOfPauseBetweenMatchesStats(s scheduleStats, schedule [][]Match, players []Player) float64 {
+func getStdOfPauseBetweenMatchesStats(s scheduleStats, schedule Schedule, players []Player) float64 {
 	pausesBetweenMatches := make([]float64, 0, len(players)*(len(players)-1)/2)
 	for i := range players {
 		for j := i + 1; j < len(players); j++ {
@@ -116,7 +219,7 @@ func getStdOfPauseBetweenMatchesStats(s scheduleStats, schedule [][]Match, playe
 	return val
 }
 
-func getPausesBetweenRounds(schedule [][]Match, roundsPlaying []int) []float64 {
+func getPausesBetweenRounds(schedule Schedule, roundsPlaying []int) []float64 {
 	pauses := make([]float64, 0, 16)
 	if len(roundsPlaying) > 1 {
 		for j := 0; j < len(roundsPlaying)-1; j++ {
@@ -128,7 +231,7 @@ func getPausesBetweenRounds(schedule [][]Match, roundsPlaying []int) []float64 {
 	return pauses
 }
 
-func calcCoefficientOfVariationOfPauses(schedule [][]Match, roundsPlaying []int) float64 {
+func calcCoefficientOfVariationOfPauses(schedule Schedule, roundsPlaying []int) float64 {
 	if len(roundsPlaying) > 1 {
 		pauses := getPausesBetweenRounds(schedule, roundsPlaying)
 		return getCoefficientOfVariation(pauses)
@@ -143,4 +246,26 @@ func getCoefficientOfVariation(input []float64) float64 {
 		return math.MaxFloat64
 	}
 	return std / mean
+}
+
+// getConsecutivePlayDroughtPenalty penalizes (a) consecutive playing rounds
+// and (b) gaps above a threshold between playing rounds, summed over players.
+func getConsecutivePlayDroughtPenalty(stats scheduleStats, schedule Schedule) float64 {
+	if len(schedule) == 0 || len(stats.playerRounds) == 0 {
+		return 0
+	}
+	const gapThreshold = 3
+	total := 0
+	for _, rounds := range stats.playerRounds {
+		for j := 1; j < len(rounds); j++ {
+			diff := rounds[j] - rounds[j-1]
+			if diff == 1 {
+				total++ // consecutive play
+			}
+			if diff > gapThreshold {
+				total++ // drought
+			}
+		}
+	}
+	return float64(total) / float64(len(stats.playerRounds)*len(schedule))
 }

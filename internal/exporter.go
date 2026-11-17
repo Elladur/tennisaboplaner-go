@@ -7,6 +7,7 @@ import (
 	"time"
 
 	ics "github.com/arran4/golang-ical"
+	"github.com/montanaflynn/stats"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -15,9 +16,10 @@ const scheduleSheetName = "Schedule"
 const opponentSheet = "Partner by Player"
 const numberOfMatchesSheet = "NumMatches"
 const costSheet = "Cost"
+const gapStatsSheet = "GapStats"
 
 // Export the season into various files (excel & ical)
-func (s Season) Export(directory string) error {
+func (s *Season) Export(directory string) error {
 	err := s.exportExcel(directory)
 	if err != nil {
 		return err
@@ -29,7 +31,7 @@ func (s Season) Export(directory string) error {
 	return nil
 }
 
-func (s Season) exportExcel(directoy string) error {
+func (s *Season) exportExcel(directory string) error {
 	f := excelize.NewFile()
 	defer func() {
 		if err := f.Close(); err != nil {
@@ -39,26 +41,31 @@ func (s Season) exportExcel(directoy string) error {
 	}()
 
 	// initial sheet for schedule
-	if err := addInitialScheduleSheet(f, s); err != nil {
+	if err := addInitialScheduleSheet(f, *s); err != nil {
 		return err
 	}
 
 	// new sheet for oppopnent tab
-	if err := addOpponentSheet(f, s); err != nil {
+	if err := addOpponentSheet(f, *s); err != nil {
 		return err
 	}
 
 	// new sheet for matches tab
-	if err := addNumberOfMatchesSheet(f, s); err != nil {
+	if err := addNumberOfMatchesSheet(f, *s); err != nil {
 		return err
 	}
 
 	// new sheet for costs
-	if err := addCostSheet(f, s); err != nil {
+	if err := addCostSheet(f, *s); err != nil {
 		return err
 	}
 
-	if err := f.SaveAs(filepath.Join(directoy, "schedule.xlsx")); err != nil {
+	// gap stats
+	if err := addGapStatsSheet(f, *s); err != nil {
+		return err
+	}
+
+	if err := f.SaveAs(filepath.Join(directory, "schedule.xlsx")); err != nil {
 		return err
 	}
 	return nil
@@ -153,7 +160,7 @@ func addNumberOfMatchesSheet(f *excelize.File, s Season) error {
 			if err != nil {
 				return err
 			}
-			getnumMatches := float64(len(getRoundIndizesOfMatch(s.Schedule, match)))
+			getnumMatches := float64(len(s.Schedule.RoundIndizesOfMatch(match)))
 			if err := f.SetCellValue(numberOfMatchesSheet, getCell(j+1, i+1), getnumMatches); err != nil {
 				return err
 			}
@@ -183,7 +190,7 @@ func addCostSheet(f *excelize.File, s Season) error {
 		return err
 	}
 	for i, p := range s.Players {
-		timesPlaying := float64(len(getRoundIndizesOfPlayer(s.Schedule, i)))
+		timesPlaying := float64(len(s.Schedule.RoundIndizesOfPlayer(i)))
 		if err := f.SetCellValue(costSheet, getCell(0, i+1), p.Name); err != nil {
 			return err
 		}
@@ -197,9 +204,78 @@ func addCostSheet(f *excelize.File, s Season) error {
 	return nil
 }
 
+func gapLengths(scheduleLen int, rounds []int) []int {
+	if scheduleLen <= 0 {
+		return nil
+	}
+	if len(rounds) == 0 {
+		return []int{scheduleLen}
+	}
+	gaps := make([]int, 0, len(rounds)+1)
+	gaps = append(gaps, rounds[0])
+	for j := 1; j < len(rounds); j++ {
+		gaps = append(gaps, rounds[j]-rounds[j-1]-1)
+	}
+	gaps = append(gaps, scheduleLen-1-rounds[len(rounds)-1])
+	return gaps
+}
+
+func addGapStatsSheet(f *excelize.File, s Season) error {
+	_, err := f.NewSheet(gapStatsSheet)
+	if err != nil {
+		return err
+	}
+	headers := []string{"Player", "RoundsPlaying", "GapCount", "AvgGap", "MaxGap", "MinGap"}
+	for i, h := range headers {
+		if err := f.SetCellValue(gapStatsSheet, getCell(0, i), h); err != nil {
+			return err
+		}
+	}
+	for i := range s.Players {
+		rounds := s.Schedule.RoundIndizesOfPlayer(i)
+		gaps := gapLengths(len(s.Schedule), rounds)
+		if err := f.SetCellValue(gapStatsSheet, getCell(i+1, 0), s.Players[i].Name); err != nil {
+			return err
+		}
+		if err := f.SetCellValue(gapStatsSheet, getCell(i+1, 1), len(rounds)); err != nil {
+			return err
+		}
+		avg, maxv, minv := 0.0, 0.0, 0.0
+		if len(gaps) > 0 {
+			vals := stats.LoadRawData(gaps)
+			if v, err := stats.Mean(vals); err == nil {
+				avg = v
+			}
+			if v, err := stats.Max(vals); err == nil {
+				maxv = v
+			}
+			if v, err := stats.Min(vals); err == nil {
+				minv = v
+			}
+		}
+		if err := f.SetCellValue(gapStatsSheet, getCell(i+1, 2), len(gaps)); err != nil {
+			return err
+		}
+		if err := f.SetCellValue(gapStatsSheet, getCell(i+1, 3), avg); err != nil {
+			return err
+		}
+		if err := f.SetCellValue(gapStatsSheet, getCell(i+1, 4), maxv); err != nil {
+			return err
+		}
+		if err := f.SetCellValue(gapStatsSheet, getCell(i+1, 5), minv); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // calculates excel column of a zero-based-index
 func getColName(index int) string {
-	return string(rune('A' + index))
+	name, err := excelize.ColumnNumberToName(index + 1)
+	if err != nil {
+		return string(rune('A' + index))
+	}
+	return name
 }
 
 // calculates cell of zero-based indizes
@@ -208,7 +284,7 @@ func getCell(i, j int) string {
 	return fmt.Sprintf("%s%d", col, i+1)
 }
 
-func (s Season) exportCalendarFiles(directory string) error {
+func (s *Season) exportCalendarFiles(directory string) error {
 	for i := range s.Players {
 		if err := s.exportCalendarFileForPlayer(i, directory); err != nil {
 			return err
@@ -217,10 +293,10 @@ func (s Season) exportCalendarFiles(directory string) error {
 	return nil
 }
 
-func (s Season) exportCalendarFileForPlayer(player int, directory string) error {
+func (s *Season) exportCalendarFileForPlayer(player int, directory string) error {
 	cal := ics.NewCalendar()
 	cal.SetMethod(ics.MethodRequest)
-	for _, i := range getRoundIndizesOfPlayer(s.Schedule, player) {
+	for _, i := range s.Schedule.RoundIndizesOfPlayer(player) {
 		date := s.dates[i]
 		event := cal.AddEvent(fmt.Sprintf("Tennisabo %s", date.Format(time.DateOnly)))
 		event.SetCreatedTime(time.Now())

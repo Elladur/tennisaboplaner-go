@@ -1,0 +1,58 @@
+{
+    "CalendarTitle": "Large",
+    "Start": "2024-01-01 19:00:00",
+    "End": "2024-08-01 21:00:00",
+    "Location": "Europe/Berlin",
+    "ExcludedDates": [
+        "2024-03-04"
+    ],
+    "OverallCost": 2000,
+    "NumberOfCourts": 3,
+    "Players": [
+        {
+            "Name": "P1",
+            "CannotPlay": [],
+            "Weight": 1
+        },
+        {
+            "Name": "P2",
+            "CannotPlay": [
+                "2024-01-08"
+            ],
+            "Weight": 1
+        },
+        {
+            "Name": "P3",
+            "CannotPlay": [],
+            "Weight": 1
+        },
+        {
+            "Name": "P4",
+            "CannotPlay": [],
+            "Weight": 0.5
+        },
+        {
+            "Name": "P5",
+            "CannotPlay": [
+                "2024-02-12",
+                "2024-02-19"
+            ],
+            "Weight": 1
+        },
+        {
+            "Name": "P6",
+            "CannotPlay": [],
+            "Weight": 1
+        },
+        {
+            "Name": "P7",
+            "CannotPlay": [],
+            "Weight": 1
+        },
+        {
+            "Name": "P8",
+            "CannotPlay": [],
+            "Weight": 2
+        }
+    ]
+}

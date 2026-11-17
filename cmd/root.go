@@ -105,6 +105,6 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "settings.json", "path to config file")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "level", "info", "set loglevel (possibilites: debug, info, warn)")
 	rootCmd.PersistentFlags().StringVar(&outputDirectory, "outDir", "output", "directory to which the files are exported")
-	rootCmd.PersistentFlags().IntVar(&executionTimes, "times", 100, "how many times should be tried to find a optimal schedule")
+	rootCmd.PersistentFlags().IntVar(&executionTimes, "times", 200, "how many times should be tried to find a optimal schedule")
 	rootCmd.PersistentFlags().BoolVar(&noUpdateCheck, "no-update-check", false, "disable automatic update check")
 }

@@ -1,0 +1,56 @@
+{
+    "CalendarTitle": "Tennisabo",
+    "Start": "2026-10-06 20:00:00",
+    "End": "2027-04-30 22:00:00",
+    "Location": "Europe/Berlin",
+    "ExcludedDates": [],
+    "OverallCost": 2028,
+    "NumberOfCourts": 2,
+    "Players": [
+        {
+            "Name": "player1",
+            "CannotPlay": [
+                "2026-10-06"
+            ],
+            "Weight": 1
+        },
+        {
+            "Name": "player2",
+            "CannotPlay": [],
+            "Weight": 1
+        },
+        {
+            "Name": "player3",
+            "CannotPlay": [
+                "2026-10-06",
+                "2026-10-27"
+            ],
+            "Weight": 1
+        },
+        {
+            "Name": "player4",
+            "CannotPlay": [],
+            "Weight": 1
+        },
+        {
+            "Name": "player5",
+            "CannotPlay": [
+                "2026-10-06",
+                "2026-10-13",
+                "2026-10-20",
+                "2026-10-27"
+            ],
+            "Weight": 0.5
+        },
+        {
+            "Name": "player6",
+            "CannotPlay": [],
+            "Weight": 0.5
+        },
+        {
+            "Name": "player7",
+            "CannotPlay": [],
+            "Weight": 0.5
+        }
+    ]
+}
