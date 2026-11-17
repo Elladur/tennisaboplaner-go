@@ -2,6 +2,7 @@ package internal
 
 import (
 	"math"
+	"reflect"
 
 	"github.com/montanaflynn/stats"
 )
@@ -35,16 +36,28 @@ func computeScheduleStats(schedule Schedule, players []Player) scheduleStats {
 	return s
 }
 
+// statsConsistent reports whether s matches a freshly computed view of schedule.
+// Used by tests (and optionally debug) to catch stats/schedule drift.
+func statsConsistent(s scheduleStats, schedule Schedule, players []Player) bool {
+	fresh := computeScheduleStats(schedule, players)
+	return reflect.DeepEqual(s, fresh)
+}
+
 func insertSorted(rounds []int, round int) []int {
 	for i, v := range rounds {
 		if round < v {
-			rounds = append(rounds, 0)
-			copy(rounds[i+1:], rounds[i:])
-			rounds[i] = round
-			return rounds
+			// Allocate a fresh backing array so we never clobber a shared slice.
+			out := make([]int, len(rounds)+1)
+			copy(out, rounds[:i])
+			out[i] = round
+			copy(out[i+1:], rounds[i:])
+			return out
 		}
 	}
-	return append(rounds, round)
+	out := make([]int, len(rounds)+1)
+	copy(out, rounds)
+	out[len(rounds)] = round
+	return out
 }
 
 func (s *scheduleStats) addMatch(m Match, round int) {
@@ -66,7 +79,13 @@ func (s *scheduleStats) addMatch(m Match, round int) {
 func removeRoundIndex(rounds []int, round int) []int {
 	for i, v := range rounds {
 		if v == round {
-			return append(rounds[:i], rounds[i+1:]...)
+			out := make([]int, 0, len(rounds)-1)
+			out = append(out, rounds[:i]...)
+			out = append(out, rounds[i+1:]...)
+			if len(out) == 0 {
+				return nil
+			}
+			return out
 		}
 	}
 	return rounds
